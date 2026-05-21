@@ -1,0 +1,28 @@
+# Web & API Framework
+fastapi
+uvicorn
+pydantic
+python-dotenv
+
+# LLM & Agent Frameworks
+langchain
+langgraph
+
+# Vector Database & Retrieval
+chromadb
+sentence-transformers
+rank-bm25
+
+# Document & Image Processing
+pymupdf
+pdfplumber
+pillow
+open-clip-torch
+
+# UI
+streamlit
+
+# Utilities & Data Science
+tqdm
+numpy
+pandas

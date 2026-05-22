@@ -1,28 +1,41 @@
-# Web & API Framework
-fastapi
-uvicorn
-pydantic
-python-dotenv
+# ============================================================
+# MaritimeMind AI — Pinned Requirements (Phase 2)
+# All versions pinned for fast, reproducible pip install.
+# ============================================================
 
-# LLM & Agent Frameworks
-langchain
-langgraph
+# Web & API Framework
+fastapi==0.115.12
+uvicorn==0.34.2
+pydantic==2.11.5
+pydantic-settings==2.9.1
+python-dotenv==1.1.0
+
+# LLM & Agent Frameworks  (pinned compatible set)
+langchain==0.3.25
+langchain-community==0.3.23
+langchain-core==0.3.58
+langchain-text-splitters==0.3.8
+langgraph==0.4.8
 
 # Vector Database & Retrieval
-chromadb
-sentence-transformers
-rank-bm25
+chromadb==0.6.3
+sentence-transformers==4.1.0
+rank-bm25==0.2.2
 
 # Document & Image Processing
-pymupdf
-pdfplumber
-pillow
-open-clip-torch
+pymupdf==1.25.5
+pdfplumber==0.11.6
+pillow==11.2.1
+open-clip-torch==2.32.0
 
 # UI
-streamlit
+streamlit==1.45.1
 
 # Utilities & Data Science
-tqdm
-numpy
-pandas
+tqdm==4.67.1
+numpy==1.26.4
+pandas==2.2.3
+
+# Testing
+pytest==8.3.5
+pytest-asyncio==0.25.3

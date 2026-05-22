@@ -1,0 +1,18 @@
+{
+  "37437177-Pumps": {
+    "status": "COMPLETED",
+    "processed_date": "2026-05-22T18:35:58.073736+00:00",
+    "chunk_count": 0,
+    "image_count": 11,
+    "errors": []
+  },
+  "ship cooling system": {
+    "status": "FAILED",
+    "processed_date": "2026-05-22T18:36:55.776122+00:00",
+    "chunk_count": 0,
+    "image_count": 0,
+    "errors": [
+      "Failed to import transformers.modeling_utils because of the following error (look up to see its traceback):\ncannot import name 'runtime_version' from 'google.protobuf' (C:\\Users\\danma\\AppData\\Local\\Programs\\Python\\Python312\\Lib\\site-packages\\google\\protobuf\\__init__.py)"
+    ]
+  }
+}

@@ -1,0 +1,436 @@
+{
+  "summary": [
+    {
+      "stage": 1,
+      "label": "Ship Fuel System (Engineering)",
+      "status": "OK",
+      "chunks": 65,
+      "images": 1,
+      "elapsed": 36.7
+    },
+    {
+      "stage": 2,
+      "label": "Engine Room Fires (Safety / Emergency)",
+      "status": "OK",
+      "chunks": 17,
+      "images": 18,
+      "elapsed": 19.8
+    },
+    {
+      "stage": 3,
+      "label": "Ballast Operation Manual (Deck)",
+      "status": "OK",
+      "chunks": 17,
+      "images": 5,
+      "elapsed": 5.3
+    },
+    {
+      "stage": 4,
+      "label": "Radar Manual (Navigation \u2014 Large Document)",
+      "status": "OK",
+      "chunks": 429,
+      "images": 307,
+      "elapsed": 129.3
+    },
+    {
+      "stage": 5,
+      "label": "W\u00e4rtsil\u00e4 Maintenance Manual (Engineering)",
+      "status": "OK",
+      "chunks": 200,
+      "images": 4,
+      "elapsed": 39.0
+    }
+  ],
+  "detailed_reports": [
+    {
+      "stage": 1,
+      "label": "Ship Fuel System (Engineering)",
+      "report": {
+        "domain": "engineering",
+        "query_results": [
+          {
+            "query": "How do I troubleshoot a fuel oil pressure drop?",
+            "vector_hits": 5,
+            "bm25_hits": 5,
+            "image_hits": 3,
+            "top_chunk": "[TABLE \u2014 Fig. 2.4 \u2013 33 Fuel injector, HP fuel line]\n\n| Pos. | Connection | Torque\nNm |\n| --- | --- | --- |\n| 1. | Nozzle (Use loctite 767 or equivalen | t on thread) 750..800 |\n| 2. | Locking nut | 70",
+            "top_chunk_metadata": {
+              "chunk_id": "eng_injection__p093_c065",
+              "department": "engineering",
+              "subsystem": "Injection system components",
+              "section_title": "Fig. 2.4 \u2013 33 Fuel injector, HP fuel line",
+              "contains_procedure": false,
+              "contains_warning": false,
+              "contains_emergency": false,
+              "importance": "low",
+              "applicable_intents": "[\"DIAGRAM_REQUEST\"]",
+              "has_prev_chunk": true,
+              "has_next_chunk": true,
+              "related_images": "[]",
+              "distance": 0.6067
+            },
+            "linked_images": 0
+          },
+          {
+            "query": "What are the fuel purifier maintenance steps?",
+            "vector_hits": 5,
+            "bm25_hits": 5,
+            "image_hits": 3,
+            "top_chunk": "The engines are equipped with an engine-mounted fuel filter. PDE engines also have the option of commutative engine-mounted fuel filters which can be renewed during operation. All engines must also be",
+            "top_chunk_metadata": {
+              "chunk_id": "eng_pde_and_xp_p006_c024",
+              "department": "engineering",
+              "subsystem": "PDE and XPI engines",
+              "section_title": "PDE and XPI engines",
+              "contains_procedure": false,
+              "contains_warning": false,
+              "contains_emergency": false,
+              "importance": "medium",
+              "applicable_intents": "[\"PROCEDURE\"]",
+              "has_prev_chunk": true,
+              "has_next_chunk": true,
+              "related_images": "[]",
+              "distance": 0.5103
+            },
+            "linked_images": 0
+          },
+          {
+            "query": "fuel system valve operation procedure",
+            "vector_hits": 5,
+            "bm25_hits": 5,
+            "image_hits": 3,
+            "top_chunk": "338 166 Example of a fuel tank installation. 1. Bleed pipe. 2. Fuel filler pipe with filler cap. 3. Lead-through sleeve of fuel-resistant rubber. 4. Inspection hatch. 5. Baffle plate. 6. Fuel cocks. 7",
+            "top_chunk_metadata": {
+              "chunk_id": "eng_position_p003_c008",
+              "department": "engineering",
+              "subsystem": "Position",
+              "section_title": "3",
+              "contains_procedure": false,
+              "contains_warning": true,
+              "contains_emergency": false,
+              "importance": "high",
+              "applicable_intents": "[\"PROCEDURE\"]",
+              "has_prev_chunk": true,
+              "has_next_chunk": true,
+              "related_images": "[]",
+              "distance": 0.4587
+            },
+            "linked_images": 0
+          }
+        ]
+      }
+    },
+    {
+      "stage": 2,
+      "label": "Engine Room Fires (Safety / Emergency)",
+      "report": {
+        "domain": "safety",
+        "query_results": [
+          {
+            "query": "What is the emergency procedure for engine room fire?",
+            "vector_hits": 5,
+            "bm25_hits": 5,
+            "image_hits": 3,
+            "top_chunk": "Preventing an engine room fire is the priority, but the time and effectiveness of the response is almost as important. Although a crew has taken all reasonable precautions, an engine room fire can sti",
+            "top_chunk_metadata": {
+              "chunk_id": "saf_peter_st\u00e5l_p003_c005",
+              "department": "safety",
+              "subsystem": "Peter St\u00e5lberg",
+              "section_title": "Dealing with an engine room fire",
+              "contains_procedure": false,
+              "contains_warning": true,
+              "contains_emergency": true,
+              "importance": "high",
+              "applicable_intents": "[\"EMERGENCY\"]",
+              "has_prev_chunk": true,
+              "has_next_chunk": true,
+              "related_images": "[\"507807e2066ffb9b\", \"eb5b359aa30c85e1\", \"33b96f4a47c2cd99\", \"dd0e4c5f8075f3bf\", \"3aea439481618d33\"]",
+              "distance": 0.347
+            },
+            "linked_images": 5
+          },
+          {
+            "query": "How to activate fixed fire suppression system?",
+            "vector_hits": 5,
+            "bm25_hits": 5,
+            "image_hits": 3,
+            "top_chunk": "We were heading for an offshore unit to discharge cargo.  The weather was not good - the wind speed was about 30 knots with a swell of about 4 metres \u2013 but we were all experienced and knew what we wer",
+            "top_chunk_metadata": {
+              "chunk_id": "saf_can_be_sev_p004_c008",
+              "department": "safety",
+              "subsystem": "can be severe.",
+              "section_title": "can be severe.",
+              "contains_procedure": false,
+              "contains_warning": false,
+              "contains_emergency": true,
+              "importance": "high",
+              "applicable_intents": "[\"EMERGENCY\"]",
+              "has_prev_chunk": true,
+              "has_next_chunk": true,
+              "related_images": "[\"3aea439481618d33\"]",
+              "distance": 0.5556
+            },
+            "linked_images": 1
+          },
+          {
+            "query": "fire detection alarm response steps",
+            "vector_hits": 5,
+            "bm25_hits": 5,
+            "image_hits": 3,
+            "top_chunk": "Looking at the events leading up to this fire we can see that the first alarm went off at 1630 and there was a series of alarms after that \u2013 but the crew didn\u2019t do anything and apparently didn\u2019t under",
+            "top_chunk_metadata": {
+              "chunk_id": "saf_engine\u2008roo_p007_c012",
+              "department": "safety",
+              "subsystem": "ENGINE\u2008ROOM\u2008FIRES",
+              "section_title": "6",
+              "contains_procedure": false,
+              "contains_warning": false,
+              "contains_emergency": true,
+              "importance": "high",
+              "applicable_intents": "[\"EMERGENCY\"]",
+              "has_prev_chunk": true,
+              "has_next_chunk": true,
+              "related_images": "[\"62a3cfd7be920b84\", \"77b5f2a7c5f3239a\", \"18ecf04980889232\", \"cd3e55ee4ade3916\"]",
+              "distance": 0.4232
+            },
+            "linked_images": 4
+          }
+        ]
+      }
+    },
+    {
+      "stage": 3,
+      "label": "Ballast Operation Manual (Deck)",
+      "report": {
+        "domain": "deck",
+        "query_results": [
+          {
+            "query": "What is the correct ballast water exchange procedure?",
+            "vector_hits": 5,
+            "bm25_hits": 5,
+            "image_hits": 3,
+            "top_chunk": "The ballast operation should be monitored throughout by a duly qualified deck officer, with the deck crew using a reliable means of communications. It should be verified that ballast water is as inten",
+            "top_chunk_metadata": {
+              "chunk_id": "dec_ballast_pr_p002_c008",
+              "department": "deck",
+              "subsystem": "Ballast Preparation",
+              "section_title": "Monitoring",
+              "contains_procedure": false,
+              "contains_warning": false,
+              "contains_emergency": false,
+              "importance": "low",
+              "applicable_intents": "[\"EXPLANATION\"]",
+              "has_prev_chunk": true,
+              "has_next_chunk": true,
+              "related_images": "[\"702ea2a3bd2ca6b6\", \"7bea295ce4b6ef66\", \"c1d66318c5a70bcc\"]",
+              "distance": 0.3483
+            },
+            "linked_images": 3
+          },
+          {
+            "query": "ballast pump startup sequence",
+            "vector_hits": 5,
+            "bm25_hits": 5,
+            "image_hits": 3,
+            "top_chunk": "Taking care when ballasting in shallow waters as it can cause ballast pump strainers to choke and",
+            "top_chunk_metadata": {
+              "chunk_id": "dec_ballast_pr_p002_c006",
+              "department": "deck",
+              "subsystem": "Ballast Preparation",
+              "section_title": "Ballast Preparation",
+              "contains_procedure": false,
+              "contains_warning": false,
+              "contains_emergency": false,
+              "importance": "high",
+              "applicable_intents": "[\"TROUBLESHOOTING\"]",
+              "has_prev_chunk": true,
+              "has_next_chunk": true,
+              "related_images": "[\"702ea2a3bd2ca6b6\", \"7bea295ce4b6ef66\", \"c1d66318c5a70bcc\"]",
+              "distance": 0.4438
+            },
+            "linked_images": 3
+          },
+          {
+            "query": "How to prevent ballast tank corrosion?",
+            "vector_hits": 5,
+            "bm25_hits": 5,
+            "image_hits": 3,
+            "top_chunk": "Applying best ballast water management practice is essential in order to comply with applicable regulations and to prevent a costly claim. The maintenance and inspection of marine ballast tanks plays ",
+            "top_chunk_metadata": {
+              "chunk_id": "dec_ballast_pr_p005_c017",
+              "department": "deck",
+              "subsystem": "Ballast Preparation",
+              "section_title": "Conclusion",
+              "contains_procedure": false,
+              "contains_warning": true,
+              "contains_emergency": false,
+              "importance": "high",
+              "applicable_intents": "[\"PROCEDURE\"]",
+              "has_prev_chunk": true,
+              "has_next_chunk": false,
+              "related_images": "[\"3e7ca07c89cb6898\", \"2789698c5ed320fa\"]",
+              "distance": 0.2954
+            },
+            "linked_images": 2
+          }
+        ]
+      }
+    },
+    {
+      "stage": 4,
+      "label": "Radar Manual (Navigation \u2014 Large Document)",
+      "report": {
+        "domain": "navigation",
+        "query_results": [
+          {
+            "query": "How to calibrate radar heading alignment?",
+            "vector_hits": 5,
+            "bm25_hits": 5,
+            "image_hits": 3,
+            "top_chunk": "Adjust the bearing so that bearing of the target measured with the ship\u2019s compass matches that of the target echo on the radar display. Before adjustment Measure the bearing of an adequate target (for",
+            "top_chunk_metadata": {
+              "chunk_id": "nav_73__bearin_p138_c064",
+              "department": "navigation",
+              "subsystem": "7.3  BEARING ADJUSTMENT",
+              "section_title": "7.3  BEARING ADJUSTMENT",
+              "contains_procedure": false,
+              "contains_warning": false,
+              "contains_emergency": false,
+              "importance": "low",
+              "applicable_intents": "[\"EXPLANATION\"]",
+              "has_prev_chunk": true,
+              "has_next_chunk": true,
+              "related_images": "[\"877653e87f755e54\", \"f47ef158b7172423\", \"aff3255d23c1a5a8\", \"c59f154204710561\", \"6cc44ef58b01d05b\", \"683fa5f2162da1cd\", \"97fcefb3135c3b27\", \"8510c42b4f428a92\", \"e0f6b371853b0b3e\", \"acc40c00a7f9af04\"]",
+              "distance": 0.4659
+            },
+            "linked_images": 10
+          },
+          {
+            "query": "ARPA target acquisition procedure",
+            "vector_hits": 5,
+            "bm25_hits": 5,
+            "image_hits": 3,
+            "top_chunk": "1) Acquisition MANUAL/AUTO (by automatic acquisition/activation zone) 2) Tracking 10 targets (Automatic tracking) 3) Display Tracking data 1 ship (AIS or TT) Maximum tracking range 20NM (This varies d",
+            "top_chunk_metadata": {
+              "chunk_id": "nav_1264__tt_f_p220_c027",
+              "department": "navigation",
+              "subsystem": "12.6.4  TT FUNCTION (STANDARD BUILT IN)",
+              "section_title": "12.6.4  TT FUNCTION (STANDARD BUILT IN)",
+              "contains_procedure": false,
+              "contains_warning": false,
+              "contains_emergency": false,
+              "importance": "medium",
+              "applicable_intents": "[\"EXPLANATION\"]",
+              "has_prev_chunk": true,
+              "has_next_chunk": true,
+              "related_images": "[]",
+              "distance": 0.5439
+            },
+            "linked_images": 0
+          },
+          {
+            "query": "radar interference rejection settings",
+            "vector_hits": 5,
+            "bm25_hits": 5,
+            "image_hits": 3,
+            "top_chunk": "[TABLE \u2014 8.1  SETS RADAR ECHO]\n\n|  |\n| --- |\n| Do not change suppression level/DIST unless absolutely necessary.\nIncorrect adjustment will result in deletion of nearby target images and\nthus collision",
+            "top_chunk_metadata": {
+              "chunk_id": "nav_81__sets_r_p158_c016",
+              "department": "navigation",
+              "subsystem": "8.1  SETS RADAR ECHO",
+              "section_title": "8.1  SETS RADAR ECHO",
+              "contains_procedure": false,
+              "contains_warning": false,
+              "contains_emergency": false,
+              "importance": "low",
+              "applicable_intents": "[\"EXPLANATION\"]",
+              "has_prev_chunk": true,
+              "has_next_chunk": true,
+              "related_images": "[\"edd1e64446b96d25\", \"d7ab1d025310c948\", \"125aa1bf08d2970e\", \"c1751623cb5efe9a\"]",
+              "distance": 0.3044
+            },
+            "linked_images": 4
+          }
+        ]
+      }
+    },
+    {
+      "stage": 5,
+      "label": "W\u00e4rtsil\u00e4 Maintenance Manual (Engineering)",
+      "report": {
+        "domain": "engineering",
+        "query_results": [
+          {
+            "query": "What is the cylinder head overhaul procedure?",
+            "vector_hits": 5,
+            "bm25_hits": 5,
+            "image_hits": 3,
+            "top_chunk": "[TABLE \u2014 Fig. 2.4 \u2013 27 Cylinder head]\n\n|  |  |\n| --- | --- |\n|  |  |",
+            "top_chunk_metadata": {
+              "chunk_id": "eng_cylinder_h_p087_c055",
+              "department": "engineering",
+              "subsystem": "Cylinder head with valves",
+              "section_title": "Fig. 2.4 \u2013 27 Cylinder head",
+              "contains_procedure": false,
+              "contains_warning": false,
+              "contains_emergency": false,
+              "importance": "low",
+              "applicable_intents": "[\"DIAGRAM_REQUEST\"]",
+              "has_prev_chunk": true,
+              "has_next_chunk": true,
+              "related_images": "[]",
+              "distance": 0.4878
+            },
+            "linked_images": 0
+          },
+          {
+            "query": "How to adjust fuel injection timing on Wartsila engine?",
+            "vector_hits": 5,
+            "bm25_hits": 5,
+            "image_hits": 3,
+            "top_chunk": "[TABLE \u2014 2.4 \u2013 96]\n\n| Timing, clearances and settings |  |\n| --- | --- |\n| Valve clearances cold engine:\n\u2013 Inlet valve 0.7 mm\n\u2013 Exhaust valve 0.8 mm |  |\n| Fuel delivery commencement See test records\n",
+            "top_chunk_metadata": {
+              "chunk_id": "eng_for_not_sp_p097_c070",
+              "department": "engineering",
+              "subsystem": "for not specified bolt connections",
+              "section_title": "2.4 \u2013 96",
+              "contains_procedure": false,
+              "contains_warning": false,
+              "contains_emergency": false,
+              "importance": "low",
+              "applicable_intents": "[\"EXPLANATION\"]",
+              "has_prev_chunk": true,
+              "has_next_chunk": true,
+              "related_images": "[]",
+              "distance": 0.4896
+            },
+            "linked_images": 0
+          },
+          {
+            "query": "Wartsila 26 cooling water pump maintenance",
+            "vector_hits": 5,
+            "bm25_hits": 5,
+            "image_hits": 3,
+            "top_chunk": "[TABLE \u2014 Fig. 2.4 \u2013 18 Cooling water pump]\n\n| Pos. | Connection | Torque\nNm |\n| --- | --- | --- |\n| 1. | Governor drive housing | 175 |\n| 2. | Gear wheel on shaft | 10 |\n| 3. | Governor | 80 |\n| 4. | ",
+            "top_chunk_metadata": {
+              "chunk_id": "eng_cooling_wa_p079_c032",
+              "department": "engineering",
+              "subsystem": "Cooling water system components",
+              "section_title": "Fig. 2.4 \u2013 18 Cooling water pump",
+              "contains_procedure": false,
+              "contains_warning": false,
+              "contains_emergency": false,
+              "importance": "low",
+              "applicable_intents": "[\"DIAGRAM_REQUEST\"]",
+              "has_prev_chunk": true,
+              "has_next_chunk": true,
+              "related_images": "[]",
+              "distance": 0.5045
+            },
+            "linked_images": 0
+          }
+        ]
+      }
+    }
+  ]
+}

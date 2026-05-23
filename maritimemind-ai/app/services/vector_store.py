@@ -120,6 +120,48 @@ class VectorStoreService:
             ))
         return chunks
 
+    def get_text_chunks_by_ids(self, ids: List[str]) -> List[TextChunk]:
+        if not ids:
+            return []
+        collection = self._get_or_create_text_collection()
+        results = collection.get(ids=ids, include=["documents", "metadatas"])
+        if not results or not results.get("ids"):
+            return []
+        chunks = []
+        r_ids = results["ids"]
+        docs = results["documents"]
+        metas = results["metadatas"]
+        
+        for i in range(len(r_ids)):
+            meta = metas[i]
+            chunks.append(TextChunk(
+                chunk_id=r_ids[i],
+                manual_name=meta.get("manual_name", ""),
+                content=docs[i],
+                page_number=meta.get("page_number", 0),
+                ship_id=meta.get("ship_id") or None,
+                language=meta.get("language") or None,
+                department=meta.get("department") or "",
+                subsystem=meta.get("subsystem") or "general",
+                document_type=meta.get("document_type") or "manual",
+                section_title=meta.get("section_title") or "",
+                contains_procedure=meta.get("contains_procedure", False),
+                contains_warning=meta.get("contains_warning", False),
+                contains_emergency_workflow=meta.get("contains_emergency_workflow", False),
+                contains_diagram_reference=meta.get("contains_diagram_reference", False),
+                importance=meta.get("importance") or "medium",
+                applicable_intents=[QueryIntent(q) for q in json.loads(meta.get("applicable_intents", "[]"))],
+                hierarchy_path=json.loads(meta.get("hierarchy_path", "[]")),
+                related_image_ids=json.loads(meta.get("related_image_ids", "[]")),
+                diagram_references=json.loads(meta.get("diagram_references", "[]")),
+                keywords=json.loads(meta.get("keywords", "[]")),
+                previous_chunk_id=meta.get("previous_chunk_id") or None,
+                next_chunk_id=meta.get("next_chunk_id") or None,
+                parent_chunk_id=meta.get("parent_chunk_id") or None,
+                embedding_model=meta.get("embedding_model") or "",
+            ))
+        return chunks
+
     def add_image_embeddings(self, images: List[ImageMetadata], embeddings: List[List[float]]) -> int:
         if not images or not embeddings: return 0
         if len(images) != len(embeddings): raise ValueError("Mismatch length")
@@ -145,6 +187,51 @@ class VectorStoreService:
 
         logger.info(f"Upserted {upserted} images")
         return upserted
+
+    def get_images_by_ids(self, ids: List[str]) -> List[ImageMetadata]:
+        if not ids:
+            return []
+        collection = self._get_or_create_image_collection()
+        results = collection.get(ids=ids, include=["metadatas"])
+        if not results or not results.get("ids"):
+            return []
+            
+        images = []
+        r_ids = results["ids"]
+        metas = results["metadatas"]
+        
+        for i in range(len(r_ids)):
+            meta = metas[i]
+            
+            # Helper to safely parse bbox
+            bbox = None
+            if "bbox_x0" in meta and "bbox_y0" in meta and "bbox_x1" in meta and "bbox_y1" in meta:
+                from app.models.schemas import BoundingBox
+                bbox = BoundingBox(
+                    x0=float(meta["bbox_x0"]),
+                    y0=float(meta["bbox_y0"]),
+                    x1=float(meta["bbox_x1"]),
+                    y1=float(meta["bbox_y1"])
+                )
+
+            images.append(ImageMetadata(
+                image_id=r_ids[i],
+                manual_name=meta.get("manual_name", ""),
+                ship_id=meta.get("ship_id") or None,
+                language=meta.get("language") or None,
+                page_number=meta.get("page_number", 0),
+                image_path=meta.get("image_path", ""),
+                section_title=meta.get("section_title", ""),
+                caption=meta.get("caption", ""),
+                tags=json.loads(meta.get("tags", "[]")),
+                bbox=bbox,
+                related_chunk_ids=json.loads(meta.get("related_chunk_ids", "[]")),
+                ocr_text=meta.get("ocr_text", ""),
+                ocr_quality=float(meta.get("ocr_quality", 1.0)),
+                diagram_confidence=float(meta.get("diagram_confidence", 1.0)),
+                embedding_model=meta.get("embedding_model", ""),
+            ))
+        return images
 
     def query_images(
         self, embedding: List[float], top_k: int = 5, filters: Optional[Dict[str, Any]] = None

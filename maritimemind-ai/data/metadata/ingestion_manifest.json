@@ -7,12 +7,108 @@
     "errors": []
   },
   "ship cooling system": {
-    "status": "FAILED",
-    "processed_date": "2026-05-22T18:36:55.776122+00:00",
-    "chunk_count": 0,
+    "status": "COMPLETED",
+    "processed_date": "2026-05-23T07:03:35.241478+00:00",
+    "chunk_count": 86,
+    "image_count": 4,
+    "errors": []
+  },
+  "ship fuel system": {
+    "status": "COMPLETED",
+    "processed_date": "2026-05-23T03:57:29.244141+00:00",
+    "chunk_count": 65,
+    "image_count": 1,
+    "errors": []
+  },
+  "EngineRoomFires_TSC": {
+    "status": "COMPLETED",
+    "processed_date": "2026-05-23T03:57:50.375791+00:00",
+    "chunk_count": 17,
+    "image_count": 18,
+    "errors": []
+  },
+  "Loss-Prevention-Article-Ballast-Operation-and-Maintenance-Practice-07-2023": {
+    "status": "COMPLETED",
+    "processed_date": "2026-05-23T03:57:56.902261+00:00",
+    "chunk_count": 17,
+    "image_count": 5,
+    "errors": []
+  },
+  "radar manual": {
+    "status": "COMPLETED",
+    "processed_date": "2026-05-23T04:00:07.422466+00:00",
+    "chunk_count": 429,
+    "image_count": 307,
+    "errors": []
+  },
+  "736871061-Wartsila-26-Maintenance-Manual": {
+    "status": "COMPLETED",
+    "processed_date": "2026-05-23T04:00:47.688622+00:00",
+    "chunk_count": 200,
+    "image_count": 4,
+    "errors": []
+  },
+  "2019Intertanko_Anchoring_guidelines_a_risk-based-approach": {
+    "status": "COMPLETED",
+    "processed_date": "2026-05-23T06:55:31.023235+00:00",
+    "chunk_count": 163,
+    "image_count": 5,
+    "errors": []
+  },
+  "cargo handling": {
+    "status": "COMPLETED",
+    "processed_date": "2026-05-23T06:55:37.228676+00:00",
+    "chunk_count": 17,
+    "image_count": 6,
+    "errors": []
+  },
+  "POTLLMooringManual": {
+    "status": "COMPLETED",
+    "processed_date": "2026-05-23T06:56:12.068389+00:00",
+    "chunk_count": 146,
+    "image_count": 62,
+    "errors": []
+  },
+  "marine diesel engine manual 1": {
+    "status": "COMPLETED",
+    "processed_date": "2026-05-23T07:02:18.878132+00:00",
+    "chunk_count": 486,
+    "image_count": 60,
+    "errors": []
+  },
+  "marine diesel engine manual 2": {
+    "status": "COMPLETED",
+    "processed_date": "2026-05-23T07:03:17.474297+00:00",
+    "chunk_count": 241,
+    "image_count": 69,
+    "errors": []
+  },
+  "25-ME-tal_000": {
+    "status": "COMPLETED",
+    "processed_date": "2026-05-23T07:03:38.084608+00:00",
+    "chunk_count": 2,
+    "image_count": 4,
+    "errors": []
+  },
+  "ecdis_hb": {
+    "status": "COMPLETED",
+    "processed_date": "2026-05-23T07:04:10.502360+00:00",
+    "chunk_count": 65,
+    "image_count": 34,
+    "errors": []
+  },
+  "Ship_Evacuation-Guidelines_Simulation_Validation_a": {
+    "status": "COMPLETED",
+    "processed_date": "2026-05-23T07:04:15.129304+00:00",
+    "chunk_count": 20,
+    "image_count": 2,
+    "errors": []
+  },
+  "USCG-MSM-VOL-III-CHAP-16": {
+    "status": "COMPLETED",
+    "processed_date": "2026-05-23T07:04:16.414137+00:00",
+    "chunk_count": 1,
     "image_count": 0,
-    "errors": [
-      "Failed to import transformers.modeling_utils because of the following error (look up to see its traceback):\ncannot import name 'runtime_version' from 'google.protobuf' (C:\\Users\\danma\\AppData\\Local\\Programs\\Python\\Python312\\Lib\\site-packages\\google\\protobuf\\__init__.py)"
-    ]
+    "errors": []
   }
 }

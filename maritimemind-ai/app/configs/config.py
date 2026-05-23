@@ -41,6 +41,8 @@ class MaritimeMindSettings(BaseSettings):
     TOP_K_RESULTS: int = 10
     RRF_K: int = 60
     CONFIDENCE_THRESHOLD: float = 0.6
+    RERANKING_ENABLED: bool = True
+    RERANKER_MODEL: str = "cross-encoder/ms-marco-MiniLM-L-6-v2"
 
     # Storage Paths
     DATA_DIR: str = "./data"

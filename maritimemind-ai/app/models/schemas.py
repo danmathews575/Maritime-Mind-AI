@@ -81,10 +81,24 @@ class RetrievalScores(BaseModel):
     final_score: float = 0.0
     confidence_score: float = 0.0
 
+class ImageExplainability(BaseModel):
+    retrieval_reason: List[str] = Field(default_factory=list)
+    clip_score: float = 0.0
+    association_score: float = 0.0
+    subsystem_match: bool = False
+    source_pdf: str = ""
+    page: int = 0
+    section_title: str = ""
+    final_score: float = 0.0
+
+class RetrievedImage(BaseModel):
+    metadata: ImageMetadata
+    explainability: ImageExplainability
+
 class RetrievalResult(BaseModel):
     chunk: TextChunk
     scores: RetrievalScores
-    images: List[ImageMetadata] = Field(default_factory=list)
+    images: List[RetrievedImage] = Field(default_factory=list)
 
 class IngestionManifestEntry(BaseModel):
     status: str

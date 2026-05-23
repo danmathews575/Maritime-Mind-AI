@@ -152,3 +152,27 @@ cython_debug/
 .Trashes
 ehthumbs.db
 Thumbs.db
+
+# ── MaritimeMind AI — Large Binary Artifacts ─────────────────────────────────
+# Raw PDFs (large, should not be tracked in git — use cloud storage)
+data/raw_pdfs/**/*.pdf
+
+# Extracted images from ingestion pipeline
+data/extracted_images/
+
+# ChromaDB persistent vector store
+vector_store/
+
+# BM25 index files
+data/bm25_index/
+
+# Eval dataset (generated during ingestion)
+data/eval_dataset.json
+
+# Temp scripts
+test_pipeline.py
+docs/temp_search*.txt
+
+# Model cache
+.cache/
+models/

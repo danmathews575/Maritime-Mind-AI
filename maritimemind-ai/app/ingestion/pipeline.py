@@ -174,25 +174,45 @@ class IngestionPipeline:
             images = self.image_extractor.extract_and_save(batch_doc)
             all_images.extend(images)
             
-            linked_chunks, linked_images = self.association.associate(chunks, images)
-            
-            # Synthetic QA for Eval Dataset
-            for c in linked_chunks:
-                if c.importance == "high" and len(c.content) > 100:
-                    self.eval_data.append({
-                        "query": f"How do I troubleshoot or operate {c.subsystem} ({c.section_title})?",
-                        "ground_truth_chunk_id": c.chunk_id,
-                        "department": c.department
-                    })
-            
-            # Incrementally commit to ChromaDB
-            if linked_chunks:
-                text_embeddings = self.text_embedder.embed_batch([c.content for c in linked_chunks])
-                upserted_texts += self.vector_store.add_text_chunks(linked_chunks, text_embeddings)
+            # Incrementally commit text chunks to ChromaDB (before association, 
+            # links will be back-filled by upsert after full-doc association)
+            if chunks:
+                text_embeddings = self.text_embedder.embed_batch([c.content for c in chunks])
+                upserted_texts += self.vector_store.add_text_chunks(chunks, text_embeddings)
                 
-            if linked_images:
-                image_embeddings = self.image_embedder.embed_batch([img.image_path for img in linked_images])
-                upserted_images += self.vector_store.add_image_embeddings(linked_images, image_embeddings)
+            if images:
+                image_embeddings = self.image_embedder.embed_batch([img.image_path for img in images])
+                upserted_images += self.vector_store.add_image_embeddings(images, image_embeddings)
+
+        # ── Full-document association (after all batches) ──────────────────
+        # CRITICAL: Must run on ALL chunks + images together, not per-batch,
+        # to correctly link diagrams from page 80 to text from page 75.
+        logger.info(f"[{manual_name}] Running full-document text-image association...")
+        all_chunks, all_images = self.association.associate(all_chunks, all_images)
+        linked_chunk_count = sum(1 for c in all_chunks if c.related_image_ids)
+        logger.info(f"[{manual_name}] Association complete: {linked_chunk_count} chunks linked to images")
+
+        # Re-upsert chunks with updated related_image_ids metadata
+        if linked_chunk_count > 0:
+            logger.info(f"[{manual_name}] Re-upserting {linked_chunk_count} linked chunks with image references...")
+            linked_chunks = [c for c in all_chunks if c.related_image_ids]
+            link_embeddings = self.text_embedder.embed_batch([c.content for c in linked_chunks])
+            self.vector_store.add_text_chunks(linked_chunks, link_embeddings)
+
+        # Re-upsert images with updated related_chunk_ids metadata
+        linked_images_list = [img for img in all_images if img.related_chunk_ids]
+        if linked_images_list:
+            link_img_embeddings = self.image_embedder.embed_batch([img.image_path for img in linked_images_list])
+            self.vector_store.add_image_embeddings(linked_images_list, link_img_embeddings)
+
+        # Synthetic QA for Eval Dataset
+        for c in all_chunks:
+            if c.importance == "high" and len(c.content) > 100:
+                self.eval_data.append({
+                    "query": f"How do I troubleshoot or operate {c.subsystem} ({c.section_title})?",
+                    "ground_truth_chunk_id": c.chunk_id,
+                    "department": c.department
+                })
                 
         elapsed = time.perf_counter() - t_start
         self.manifest.update(

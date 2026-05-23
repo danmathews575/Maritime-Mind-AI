@@ -15,12 +15,21 @@ from app.utils.logger import setup_logger
 
 logger = setup_logger("maritimemind.chunker")
 
-_PROCEDURE_PATTERN = re.compile(r"^\s*(\d+[\.\)]\s+|\([a-z]\)\s+|[a-z]\)\s+)", re.MULTILINE)
+_PROCEDURE_PATTERN = re.compile(
+    r"^\s*("                        # Start of line
+    r"\d+[\.)\-]\s+"                # 1. or 1) or 1-
+    r"|[a-zA-Z][\.)\-]\s+"         # a. or b) or A.
+    r"|[ivxlIVXL]+[\.)\-]\s+"      # i. ii. iii. iv. (roman numerals)
+    r"|\-\s+(?=[A-Z])"             # - followed by capital letter
+    r")",
+    re.MULTILINE
+)
 _TABLE_MARKER = re.compile(r"^\|.+\|", re.MULTILINE)
-_WARNING_MARKER = re.compile(r"(?i)\b(warning|caution|danger|note)\b")
-_EMERGENCY_MARKER = re.compile(r"(?i)\b(emergency|fire|abandon|collision|grounding)\b")
-_TROUBLESHOOTING_MARKER = re.compile(r"(?i)\b(symptoms|causes|fault|troubleshoot|remedy)\b")
-_DIAGRAM_MARKER = re.compile(r"(?i)\b(figure|diagram|schematic|see\s+below)\b")
+_WARNING_MARKER = re.compile(r"(?i)\b(warning|caution|danger|note|important)\b")
+_EMERGENCY_MARKER = re.compile(r"(?i)\b(emergency|fire|abandon|collision|grounding|mayday|distress)\b")
+_TROUBLESHOOTING_MARKER = re.compile(r"(?i)\b(symptom|cause|fault|troubleshoot|remedy|defect|corrective|probable)\b")
+_MAINTENANCE_MARKER = re.compile(r"(?i)\b(overhaul|dismantl|assembl|disassembl|inspection|maintenance|recondit)\b")
+_DIAGRAM_MARKER = re.compile(r"(?i)\b(figure|fig\.?|diagram|schematic|see below|drawing)\b")
 
 class SemanticChunkerService:
     def __init__(self) -> None:
@@ -236,19 +245,20 @@ class SemanticChunkerService:
         chunk_id = f"{clean_dept}_{clean_sub}_p{page_number:03d}_c{chunk_index:03d}"
 
         is_proc = self._is_procedure(content)
+        is_maint = bool(_MAINTENANCE_MARKER.search(content))
         is_warn = bool(_WARNING_MARKER.search(content))
         is_emerg = bool(_EMERGENCY_MARKER.search(content))
         is_diag_ref = bool(_DIAGRAM_MARKER.search(content))
         is_trouble = self._is_troubleshooting(content)
         
         intents = []
-        if is_proc: intents.append(QueryIntent.PROCEDURE)
+        if is_proc or is_maint: intents.append(QueryIntent.PROCEDURE)
         if is_trouble: intents.append(QueryIntent.TROUBLESHOOTING)
         if is_emerg: intents.append(QueryIntent.EMERGENCY)
         if is_diag_ref: intents.append(QueryIntent.DIAGRAM_REQUEST)
         if not intents: intents.append(QueryIntent.EXPLANATION)
 
-        importance = "high" if (is_warn or is_emerg or is_trouble) else "medium"
+        importance = "high" if (is_warn or is_emerg or is_trouble) else ("medium" if (is_proc or is_maint) else "low")
 
         return TextChunk(
             chunk_id=chunk_id,

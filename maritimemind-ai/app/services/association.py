@@ -32,9 +32,14 @@ class AssociationEngine:
         images_by_page = self._index_by_page(images)
 
         for page_num, page_images in images_by_page.items():
-            page_chunks = chunks_by_page.get(page_num, [])
+            # Use ±1 page window — many technical manuals place diagrams on
+            # image-only pages with caption text on the preceding/following page.
+            candidate_page_nums = [page_num - 1, page_num, page_num + 1]
+            page_chunks = []
+            for pn in candidate_page_nums:
+                page_chunks.extend(chunks_by_page.get(pn, []))
+
             for img in page_images:
-                # 1. Spatial linking
                 for chunk in page_chunks:
                     self._link(chunk, img)
                 

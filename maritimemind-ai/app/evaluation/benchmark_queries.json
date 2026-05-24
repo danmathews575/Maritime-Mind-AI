@@ -1,0 +1,182 @@
+[
+  {
+    "query_id": "q001",
+    "query_text": "What is the purpose of the ballast system?",
+    "intent": "EXPLANATION",
+    "expected_manual": "deck_operations",
+    "expected_page": 10,
+    "expected_chunk_ids": ["dec_introducti_p010_c025"],
+    "expected_image_id": null
+  },
+  {
+    "query_id": "q002",
+    "query_text": "How to perform main engine cylinder oil change?",
+    "intent": "PROCEDURE",
+    "expected_manual": "engine_maintenance",
+    "expected_page": 24,
+    "expected_chunk_ids": ["eng_oil_p024_c182", "eng_oil_p024_c183"],
+    "expected_image_id": null
+  },
+  {
+    "query_id": "q003",
+    "query_text": "Diagnose low lubricating oil pressure alarm",
+    "intent": "TROUBLESHOOTING",
+    "expected_manual": "engine_troubleshooting",
+    "expected_page": 39,
+    "expected_chunk_ids": ["eng_troublesho_p039_c198"],
+    "expected_image_id": null
+  },
+  {
+    "query_id": "q004",
+    "query_text": "Show cooling water system diagram",
+    "intent": "DIAGRAM_REQUEST",
+    "expected_manual": "engine_systems",
+    "expected_page": 12,
+    "expected_chunk_ids": ["eng_coolant_p012_c086"],
+    "expected_image_id": "img_eng_coolant_diagram_12"
+  },
+  {
+    "query_id": "q005",
+    "query_text": "MAN B&W 6S60MC-C specifications",
+    "intent": "EXPLANATION",
+    "expected_manual": "engine_specifications",
+    "expected_page": 54,
+    "expected_chunk_ids": ["eng_specificat_p054_c037"],
+    "expected_image_id": null
+  },
+  {
+    "query_id": "q006",
+    "query_text": "Fire in engine room procedure",
+    "intent": "EMERGENCY",
+    "expected_manual": "safety_procedures",
+    "expected_page": 1,
+    "expected_chunk_ids": ["saf_validation_p001_c003"],
+    "expected_image_id": null
+  },
+  {
+    "query_id": "q007",
+    "query_text": "How do I operate the anchor winch motor in open water?",
+    "intent": "PROCEDURE",
+    "expected_manual": "deck_operations",
+    "expected_page": 22,
+    "expected_chunk_ids": ["dec_open_water_p022_c067"],
+    "expected_image_id": null
+  },
+  {
+    "query_id": "q008",
+    "query_text": "What is the procedure for lifejacket inspection?",
+    "intent": "PROCEDURE",
+    "expected_manual": "deck_operations",
+    "expected_page": 11,
+    "expected_chunk_ids": ["dec_les_p011_c049"],
+    "expected_image_id": null
+  },
+  {
+    "query_id": "q009",
+    "query_text": "Show the FURUNO ECDIS diagram",
+    "intent": "DIAGRAM_REQUEST",
+    "expected_manual": "navigation_manual",
+    "expected_page": 7,
+    "expected_chunk_ids": ["nav_diagram_fo_p007_c023"],
+    "expected_image_id": "img_nav_ecdis_07"
+  },
+  {
+    "query_id": "q010",
+    "query_text": "Troubleshooting high exhaust temperature",
+    "intent": "TROUBLESHOOTING",
+    "expected_manual": "engine_troubleshooting",
+    "expected_page": 52,
+    "expected_chunk_ids": ["eng_caution_p052_c014"],
+    "expected_image_id": null
+  },
+  {
+    "query_id": "q011",
+    "query_text": "Mooring rope identification guidelines",
+    "intent": "SOP_LOOKUP",
+    "expected_manual": "deck_operations",
+    "expected_page": 19,
+    "expected_chunk_ids": ["dec_it_with_ca_p019_c072"],
+    "expected_image_id": null
+  },
+  {
+    "query_id": "q012",
+    "query_text": "Bleeding air from the fuel system",
+    "intent": "PROCEDURE",
+    "expected_manual": "engine_maintenance",
+    "expected_page": 29,
+    "expected_chunk_ids": ["eng_maintenanc_p029_c153"],
+    "expected_image_id": null
+  },
+  {
+    "query_id": "q013",
+    "query_text": "What are the rules for alcohol and drugs?",
+    "intent": "SOP_LOOKUP",
+    "expected_manual": "deck_operations",
+    "expected_page": 8,
+    "expected_chunk_ids": ["dec_les_p008_c040"],
+    "expected_image_id": null
+  },
+  {
+    "query_id": "q014",
+    "query_text": "Explanation of the causal chain in incidents",
+    "intent": "EXPLANATION",
+    "expected_manual": "deck_operations",
+    "expected_page": 11,
+    "expected_chunk_ids": ["dec_incident_p011_c030"],
+    "expected_image_id": null
+  },
+  {
+    "query_id": "q015",
+    "query_text": "What is the bow tie approach?",
+    "intent": "EXPLANATION",
+    "expected_manual": "deck_operations",
+    "expected_page": 10,
+    "expected_chunk_ids": ["dec_introducti_p010_c025"],
+    "expected_image_id": "img_bow_tie_10"
+  },
+  {
+    "query_id": "q016",
+    "query_text": "Seawater pump impeller inspection procedure",
+    "intent": "PROCEDURE",
+    "expected_manual": "engine_maintenance",
+    "expected_page": 31,
+    "expected_chunk_ids": ["eng_maintenanc_p031_c164"],
+    "expected_image_id": null
+  },
+  {
+    "query_id": "q017",
+    "query_text": "Transmission fluid specifications and checking",
+    "intent": "PROCEDURE",
+    "expected_manual": "engine_transmissions",
+    "expected_page": 43,
+    "expected_chunk_ids": ["eng_transmissi_p043_c325"],
+    "expected_image_id": null
+  },
+  {
+    "query_id": "q018",
+    "query_text": "Emergency evacuation criteria",
+    "intent": "EMERGENCY",
+    "expected_manual": "safety_procedures",
+    "expected_page": 3,
+    "expected_chunk_ids": ["saf_validation_p003_c009"],
+    "expected_image_id": null
+  },
+  {
+    "query_id": "q019",
+    "query_text": "How to operate the capstan?",
+    "intent": "PROCEDURE",
+    "expected_manual": "deck_operations",
+    "expected_page": 23,
+    "expected_chunk_ids": ["dec_it_with_ca_p023_c091"],
+    "expected_image_id": null
+  },
+  {
+    "query_id": "q020",
+    "query_text": "Show generator wiring circuit",
+    "intent": "DIAGRAM_REQUEST",
+    "expected_manual": "engine_electrical",
+    "expected_page": 20,
+    "expected_chunk_ids": ["eng_system_p020_c151"],
+    "expected_image_id": "img_gen_wiring_20"
+  }
+]

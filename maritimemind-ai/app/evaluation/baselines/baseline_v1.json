@@ -1,0 +1,434 @@
+{
+    "timestamp": "2026-05-24T16:50:55.681330Z",
+    "benchmark_version": "v1.0",
+    "total_queries": 20,
+    "metrics": {
+        "text_retrieval": {
+            "precision_at_5": 0.125,
+            "recall_at_5": 0.25,
+            "mrr": 0.16666666666666669,
+            "map": 0.16666666666666669,
+            "ndcg_at_5": 0.18809297535714575
+        },
+        "image_retrieval": {
+            "hit_at_3": 0.0,
+            "precision_at_3": 0.0,
+            "cross_modal_accuracy": 0.0
+        },
+        "grounding": {
+            "confidence_correlation": -0.2992481203007519,
+            "low_confidence_detection_rate": 0.0
+        }
+    },
+    "per_query_results": [
+        {
+            "query_id": "q001",
+            "query_text": "What is the purpose of the ballast system?",
+            "intent": "EXPLANATION",
+            "text_metrics": {
+                "precision_at_5": 0.0,
+                "recall_at_5": 0.0,
+                "mrr": 0.0,
+                "map": 0.0,
+                "ndcg_at_5": 0.0,
+                "max_confidence": 0.8186448508640617
+            },
+            "image_metrics": {},
+            "grounding_metrics": {},
+            "errors": []
+        },
+        {
+            "query_id": "q002",
+            "query_text": "How to perform main engine cylinder oil change?",
+            "intent": "PROCEDURE",
+            "text_metrics": {
+                "precision_at_5": 0.0,
+                "recall_at_5": 0.0,
+                "mrr": 0.0,
+                "map": 0.0,
+                "ndcg_at_5": 0.0,
+                "max_confidence": 0.7541284333387995
+            },
+            "image_metrics": {},
+            "grounding_metrics": {},
+            "errors": []
+        },
+        {
+            "query_id": "q003",
+            "query_text": "Diagnose low lubricating oil pressure alarm",
+            "intent": "TROUBLESHOOTING",
+            "text_metrics": {
+                "precision_at_5": 0.0,
+                "recall_at_5": 0.0,
+                "mrr": 0.0,
+                "map": 0.0,
+                "ndcg_at_5": 0.0,
+                "max_confidence": 0.8625056387112777
+            },
+            "image_metrics": {},
+            "grounding_metrics": {},
+            "errors": []
+        },
+        {
+            "query_id": "q004",
+            "query_text": "Show cooling water system diagram",
+            "intent": "DIAGRAM_REQUEST",
+            "text_metrics": {
+                "precision_at_5": 0.0,
+                "recall_at_5": 0.0,
+                "mrr": 0.0,
+                "map": 0.0,
+                "ndcg_at_5": 0.0,
+                "max_confidence": 0.8590793557107086
+            },
+            "image_metrics": {
+                "hit_at_3": false,
+                "precision_at_3": 0.0
+            },
+            "grounding_metrics": {},
+            "errors": []
+        },
+        {
+            "query_id": "q005",
+            "query_text": "MAN B&W 6S60MC-C specifications",
+            "intent": "EXPLANATION",
+            "text_metrics": {
+                "precision_at_5": 0.0,
+                "recall_at_5": 0.0,
+                "mrr": 0.0,
+                "map": 0.0,
+                "ndcg_at_5": 0.0,
+                "max_confidence": 0.8942120584251095
+            },
+            "image_metrics": {},
+            "grounding_metrics": {},
+            "errors": []
+        },
+        {
+            "query_id": "q006",
+            "query_text": "Fire in engine room procedure",
+            "intent": "EMERGENCY",
+            "text_metrics": {
+                "precision_at_5": 0.0,
+                "recall_at_5": 0.0,
+                "mrr": 0.0,
+                "map": 0.0,
+                "ndcg_at_5": 0.0,
+                "max_confidence": 0.8474754015471326
+            },
+            "image_metrics": {},
+            "grounding_metrics": {},
+            "errors": []
+        },
+        {
+            "query_id": "q007",
+            "query_text": "How do I operate the anchor winch motor in open water?",
+            "intent": "PROCEDURE",
+            "text_metrics": {
+                "precision_at_5": 0.0,
+                "recall_at_5": 0.0,
+                "mrr": 0.0,
+                "map": 0.0,
+                "ndcg_at_5": 0.0,
+                "max_confidence": 0.7410615733031727
+            },
+            "image_metrics": {},
+            "grounding_metrics": {},
+            "errors": []
+        },
+        {
+            "query_id": "q008",
+            "query_text": "What is the procedure for lifejacket inspection?",
+            "intent": "PROCEDURE",
+            "text_metrics": {
+                "precision_at_5": 0.0,
+                "recall_at_5": 0.0,
+                "mrr": 0.0,
+                "map": 0.0,
+                "ndcg_at_5": 0.0,
+                "max_confidence": 0.9413674952242956
+            },
+            "image_metrics": {},
+            "grounding_metrics": {},
+            "errors": []
+        },
+        {
+            "query_id": "q009",
+            "query_text": "Show the FURUNO ECDIS diagram",
+            "intent": "DIAGRAM_REQUEST",
+            "text_metrics": {
+                "precision_at_5": 0.3333333333333333,
+                "recall_at_5": 1.0,
+                "mrr": 0.5,
+                "map": 0.5,
+                "ndcg_at_5": 0.6309297535714575,
+                "max_confidence": 0.8294977498464267
+            },
+            "image_metrics": {
+                "hit_at_3": false,
+                "precision_at_3": 0.0
+            },
+            "grounding_metrics": {},
+            "errors": []
+        },
+        {
+            "query_id": "q010",
+            "query_text": "Troubleshooting high exhaust temperature",
+            "intent": "TROUBLESHOOTING",
+            "text_metrics": {
+                "precision_at_5": 0.0,
+                "recall_at_5": 0.0,
+                "mrr": 0.0,
+                "map": 0.0,
+                "ndcg_at_5": 0.0,
+                "max_confidence": 1.0
+            },
+            "image_metrics": {},
+            "grounding_metrics": {},
+            "errors": []
+        },
+        {
+            "query_id": "q011",
+            "query_text": "Mooring rope identification guidelines",
+            "intent": "SOP_LOOKUP",
+            "text_metrics": {
+                "precision_at_5": 0.0,
+                "recall_at_5": 0.0,
+                "mrr": 0.0,
+                "map": 0.0,
+                "ndcg_at_5": 0.0,
+                "max_confidence": 0.7278328669387287
+            },
+            "image_metrics": {},
+            "grounding_metrics": {},
+            "errors": []
+        },
+        {
+            "query_id": "q012",
+            "query_text": "Bleeding air from the fuel system",
+            "intent": "PROCEDURE",
+            "text_metrics": {
+                "precision_at_5": 0.3333333333333333,
+                "recall_at_5": 1.0,
+                "mrr": 0.5,
+                "map": 0.5,
+                "ndcg_at_5": 0.6309297535714575,
+                "max_confidence": 0.8176335619218658
+            },
+            "image_metrics": {},
+            "grounding_metrics": {},
+            "errors": []
+        },
+        {
+            "query_id": "q013",
+            "query_text": "What are the rules for alcohol and drugs?",
+            "intent": "SOP_LOOKUP",
+            "text_metrics": {
+                "precision_at_5": 1.0,
+                "recall_at_5": 1.0,
+                "mrr": 1.0,
+                "map": 1.0,
+                "ndcg_at_5": 1.0,
+                "max_confidence": 0.6650211571889061
+            },
+            "image_metrics": {},
+            "grounding_metrics": {},
+            "errors": []
+        },
+        {
+            "query_id": "q014",
+            "query_text": "Explanation of the causal chain in incidents",
+            "intent": "EXPLANATION",
+            "text_metrics": {
+                "precision_at_5": 0.0,
+                "recall_at_5": 0.0,
+                "mrr": 0.0,
+                "map": 0.0,
+                "ndcg_at_5": 0.0,
+                "max_confidence": 0.7080343961344737
+            },
+            "image_metrics": {},
+            "grounding_metrics": {},
+            "errors": []
+        },
+        {
+            "query_id": "q015",
+            "query_text": "What is the bow tie approach?",
+            "intent": "EXPLANATION",
+            "text_metrics": {
+                "precision_at_5": 0.0,
+                "recall_at_5": 0.0,
+                "mrr": 0.0,
+                "map": 0.0,
+                "ndcg_at_5": 0.0,
+                "max_confidence": 0.7447865202068213
+            },
+            "image_metrics": {
+                "hit_at_3": false,
+                "precision_at_3": 0.0
+            },
+            "grounding_metrics": {},
+            "errors": []
+        },
+        {
+            "query_id": "q016",
+            "query_text": "Seawater pump impeller inspection procedure",
+            "intent": "PROCEDURE",
+            "text_metrics": {
+                "precision_at_5": 0.5,
+                "recall_at_5": 1.0,
+                "mrr": 1.0,
+                "map": 1.0,
+                "ndcg_at_5": 1.0,
+                "max_confidence": 0.7805662989615942
+            },
+            "image_metrics": {},
+            "grounding_metrics": {},
+            "errors": []
+        },
+        {
+            "query_id": "q017",
+            "query_text": "Transmission fluid specifications and checking",
+            "intent": "PROCEDURE",
+            "text_metrics": {
+                "precision_at_5": 0.0,
+                "recall_at_5": 0.0,
+                "mrr": 0.0,
+                "map": 0.0,
+                "ndcg_at_5": 0.0,
+                "max_confidence": 0.9132620943237539
+            },
+            "image_metrics": {},
+            "grounding_metrics": {},
+            "errors": []
+        },
+        {
+            "query_id": "q018",
+            "query_text": "Emergency evacuation criteria",
+            "intent": "EMERGENCY",
+            "text_metrics": {
+                "precision_at_5": 0.0,
+                "recall_at_5": 0.0,
+                "mrr": 0.0,
+                "map": 0.0,
+                "ndcg_at_5": 0.0,
+                "max_confidence": 0.6202438258900578
+            },
+            "image_metrics": {},
+            "grounding_metrics": {},
+            "errors": []
+        },
+        {
+            "query_id": "q019",
+            "query_text": "How to operate the capstan?",
+            "intent": "PROCEDURE",
+            "text_metrics": {
+                "precision_at_5": 0.3333333333333333,
+                "recall_at_5": 1.0,
+                "mrr": 0.3333333333333333,
+                "map": 0.3333333333333333,
+                "ndcg_at_5": 0.5,
+                "max_confidence": 0.7014880603302438
+            },
+            "image_metrics": {},
+            "grounding_metrics": {},
+            "errors": []
+        },
+        {
+            "query_id": "q020",
+            "query_text": "Show generator wiring circuit",
+            "intent": "DIAGRAM_REQUEST",
+            "text_metrics": {
+                "precision_at_5": 0.0,
+                "recall_at_5": 0.0,
+                "mrr": 0.0,
+                "map": 0.0,
+                "ndcg_at_5": 0.0,
+                "max_confidence": 1.0
+            },
+            "image_metrics": {
+                "hit_at_3": false,
+                "precision_at_3": 0.0
+            },
+            "grounding_metrics": {},
+            "errors": []
+        }
+    ],
+    "failure_analysis": [
+        {
+            "query_id": "q001",
+            "reason": "Recall=0",
+            "details": "No relevant chunks retrieved."
+        },
+        {
+            "query_id": "q002",
+            "reason": "Recall=0",
+            "details": "No relevant chunks retrieved."
+        },
+        {
+            "query_id": "q003",
+            "reason": "Recall=0",
+            "details": "No relevant chunks retrieved."
+        },
+        {
+            "query_id": "q004",
+            "reason": "Recall=0",
+            "details": "No relevant chunks retrieved."
+        },
+        {
+            "query_id": "q005",
+            "reason": "Recall=0",
+            "details": "No relevant chunks retrieved."
+        },
+        {
+            "query_id": "q006",
+            "reason": "Recall=0",
+            "details": "No relevant chunks retrieved."
+        },
+        {
+            "query_id": "q007",
+            "reason": "Recall=0",
+            "details": "No relevant chunks retrieved."
+        },
+        {
+            "query_id": "q008",
+            "reason": "Recall=0",
+            "details": "No relevant chunks retrieved."
+        },
+        {
+            "query_id": "q010",
+            "reason": "Recall=0",
+            "details": "No relevant chunks retrieved."
+        },
+        {
+            "query_id": "q011",
+            "reason": "Recall=0",
+            "details": "No relevant chunks retrieved."
+        },
+        {
+            "query_id": "q014",
+            "reason": "Recall=0",
+            "details": "No relevant chunks retrieved."
+        },
+        {
+            "query_id": "q015",
+            "reason": "Recall=0",
+            "details": "No relevant chunks retrieved."
+        },
+        {
+            "query_id": "q017",
+            "reason": "Recall=0",
+            "details": "No relevant chunks retrieved."
+        },
+        {
+            "query_id": "q018",
+            "reason": "Recall=0",
+            "details": "No relevant chunks retrieved."
+        },
+        {
+            "query_id": "q020",
+            "reason": "Recall=0",
+            "details": "No relevant chunks retrieved."
+        }
+    ]
+}

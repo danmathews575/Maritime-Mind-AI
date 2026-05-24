@@ -124,11 +124,14 @@ def synthetic_parsed_doc():
                 bbox=(300.0, 400.0, 550.0, 600.0),
                 page_number=1,
                 xref=1,
+                width=300,
+                height=300,
             )
         ],
     )
     return ParsedDocument(
         manual_name="test_manual",
+        pdf_path="test_manual.pdf",
         pages=[page1],
         total_images_extracted=1,
         total_tables_extracted=1,
@@ -144,16 +147,16 @@ class TestIngestionManifest:
 
     def test_empty_manifest_on_first_load(self, tmp_path):
         from app.services.manifest import IngestionManifest
-        with patch("app.services.manifest.get_settings") as mock_settings:
-            mock_settings.return_value.DATA_DIR = str(tmp_path)
+        with patch("app.services.manifest.settings") as mock_settings:
+            mock_settings.METADATA_DIR = str(tmp_path)
             manifest = IngestionManifest()
             data = manifest.load()
         assert data == {}
 
     def test_update_and_is_processed(self, tmp_path):
         from app.services.manifest import IngestionManifest
-        with patch("app.services.manifest.get_settings") as mock_settings:
-            mock_settings.return_value.DATA_DIR = str(tmp_path)
+        with patch("app.services.manifest.settings") as mock_settings:
+            mock_settings.METADATA_DIR = str(tmp_path)
             manifest = IngestionManifest()
             assert not manifest.is_processed("my_manual")
             manifest.update(
@@ -167,8 +170,8 @@ class TestIngestionManifest:
 
     def test_manifest_persists_to_json(self, tmp_path):
         from app.services.manifest import IngestionManifest
-        with patch("app.services.manifest.get_settings") as mock_settings:
-            mock_settings.return_value.DATA_DIR = str(tmp_path)
+        with patch("app.services.manifest.settings") as mock_settings:
+            mock_settings.METADATA_DIR = str(tmp_path)
             manifest = IngestionManifest()
             manifest.update("doc_a", "COMPLETED", 10, 3, [])
             # Re-instantiate to verify persistence
@@ -180,8 +183,8 @@ class TestIngestionManifest:
 
     def test_failed_status_not_marked_processed(self, tmp_path):
         from app.services.manifest import IngestionManifest
-        with patch("app.services.manifest.get_settings") as mock_settings:
-            mock_settings.return_value.DATA_DIR = str(tmp_path)
+        with patch("app.services.manifest.settings") as mock_settings:
+            mock_settings.METADATA_DIR = str(tmp_path)
             manifest = IngestionManifest()
             manifest.update("bad_doc", "FAILED", 0, 0, ["parse error"])
             assert not manifest.is_processed("bad_doc")
@@ -195,21 +198,21 @@ class TestChunkerService:
     """Tests for the ChunkerService with synthetic ParsedDocuments."""
 
     def test_chunks_produced(self, synthetic_parsed_doc):
-        from app.services.chunker import ChunkerService
-        chunker = ChunkerService()
+        from app.services.chunker import SemanticChunkerService
+        chunker = SemanticChunkerService()
         chunks = chunker.chunk_document(synthetic_parsed_doc)
         assert len(chunks) > 0, "Expected at least one chunk"
 
     def test_chunk_ids_are_unique(self, synthetic_parsed_doc):
-        from app.services.chunker import ChunkerService
-        chunker = ChunkerService()
+        from app.services.chunker import SemanticChunkerService
+        chunker = SemanticChunkerService()
         chunks = chunker.chunk_document(synthetic_parsed_doc)
         ids = [c.chunk_id for c in chunks]
         assert len(ids) == len(set(ids)), "Chunk IDs must be unique"
 
     def test_table_preserved_as_single_chunk(self, synthetic_parsed_doc):
-        from app.services.chunker import ChunkerService
-        chunker = ChunkerService()
+        from app.services.chunker import SemanticChunkerService
+        chunker = SemanticChunkerService()
         chunks = chunker.chunk_document(synthetic_parsed_doc)
         # Find the table chunk — it should contain the pipe characters
         table_chunks = [c for c in chunks if "|" in c.content and "Parameter" in c.content]
@@ -219,15 +222,15 @@ class TestChunkerService:
             assert "Oil Pressure" in tc.content or "Parameter" in tc.content
 
     def test_chunks_have_page_numbers(self, synthetic_parsed_doc):
-        from app.services.chunker import ChunkerService
-        chunker = ChunkerService()
+        from app.services.chunker import SemanticChunkerService
+        chunker = SemanticChunkerService()
         chunks = chunker.chunk_document(synthetic_parsed_doc)
         for chunk in chunks:
             assert chunk.page_number >= 1
 
     def test_chunks_linked_previous_next(self, synthetic_parsed_doc):
-        from app.services.chunker import ChunkerService
-        chunker = ChunkerService()
+        from app.services.chunker import SemanticChunkerService
+        chunker = SemanticChunkerService()
         chunks = chunker.chunk_document(synthetic_parsed_doc)
         if len(chunks) > 1:
             # First chunk should have no previous
@@ -240,11 +243,11 @@ class TestChunkerService:
                 assert chunks[i].next_chunk_id is not None
 
     def test_hierarchy_path_set_from_heading(self, synthetic_parsed_doc):
-        from app.services.chunker import ChunkerService
-        chunker = ChunkerService()
+        from app.services.chunker import SemanticChunkerService
+        chunker = SemanticChunkerService()
         chunks = chunker.chunk_document(synthetic_parsed_doc)
         # Body text chunks should reference the heading
-        body_chunks = [c for c in chunks if "engine" in c.content.lower() or "oil" in c.content.lower()]
+        body_chunks = [c for c in chunks if ("engine" in c.content.lower() or "oil" in c.content.lower()) and not c.content.startswith("[TABLE")]
         for bc in body_chunks:
             assert bc.hierarchy_path is not None and len(bc.hierarchy_path) > 0
 
@@ -263,12 +266,10 @@ class TestAssociationEngine:
             manual_name="test_manual",
             content=content,
             page_number=page,
-            chunk_index=0,
             department="engineering",
             section_title="Test",
             hierarchy_path=["Chapter 1"],
-            token_count=len(content.split()),
-            related_images=[],
+            related_image_ids=[],
             embedding_model="test-model",
         )
 
@@ -281,7 +282,7 @@ class TestAssociationEngine:
             image_path=f"/tmp/{image_id}.png",
             caption="",
             bbox=None,
-            linked_chunks=[],
+            related_chunk_ids=[],
             embedding_model="clip-test",
         )
 
@@ -291,8 +292,8 @@ class TestAssociationEngine:
         chunks = [self._make_chunk("c1", 1, "Engine inspection procedure.")]
         images = [self._make_image("img1", 1)]
         linked_chunks, linked_images = engine.associate(chunks, images)
-        assert "img1" in linked_chunks[0].related_images
-        assert "c1" in linked_images[0].linked_chunks
+        assert "img1" in linked_chunks[0].related_image_ids
+        assert "c1" in linked_images[0].related_chunk_ids
 
     def test_no_association_different_page(self):
         from app.services.association import AssociationEngine
@@ -300,17 +301,18 @@ class TestAssociationEngine:
         chunks = [self._make_chunk("c1", 1, "Text on page 1.")]
         images = [self._make_image("img1", 5)]
         linked_chunks, linked_images = engine.associate(chunks, images)
-        assert "img1" not in linked_chunks[0].related_images
+        assert "img1" not in linked_chunks[0].related_image_ids
 
     def test_textual_reference_association(self):
         from app.services.association import AssociationEngine
         engine = AssociationEngine()
-        # Chunk on page 1 references Figure 3; image is on page 3
+        # Chunk on page 1 references Figure 3; image is on page 2 (within ±1 page of page 1 is required)
         chunks = [self._make_chunk("c1", 1, "As shown in Figure 3, the valve assembly is critical.")]
-        images = [self._make_image("img3", 3)]
+        images = [self._make_image("img3", 2)]
+        images[0].caption = "Figure 3: Valve Assembly"
         linked_chunks, linked_images = engine.associate(chunks, images)
         # Textual reference should create a link even across pages
-        assert "img3" in linked_chunks[0].related_images
+        assert "img3" in linked_chunks[0].related_image_ids
 
     def test_bidirectional_consistency(self):
         from app.services.association import AssociationEngine
@@ -323,8 +325,8 @@ class TestAssociationEngine:
         linked_chunks, linked_images = engine.associate(chunks, images)
         # Image should reference all chunks that link to it
         for chunk in linked_chunks:
-            if "img_d1" in chunk.related_images:
-                assert chunk.chunk_id in linked_images[0].linked_chunks
+            if "img_d1" in chunk.related_image_ids:
+                assert chunk.chunk_id in linked_images[0].related_chunk_ids
 
 
 # ---------------------------------------------------------------------------
@@ -381,12 +383,10 @@ class TestIngestionPipeline:
             manual_name="test_manual",
             content="Engine room maintenance procedure.",
             page_number=1,
-            chunk_index=0,
             department="test",
             section_title="Chapter 1",
             hierarchy_path=["Chapter 1"],
-            token_count=5,
-            related_images=[],
+            related_image_ids=[],
             embedding_model="test-model",
         )
         pipeline.chunker.chunk_document.return_value = [fake_chunk]
@@ -400,19 +400,25 @@ class TestIngestionPipeline:
             image_path=str(tmp_path / "img.png"),
             caption="",
             bbox=None,
-            linked_chunks=[],
+            related_chunk_ids=[],
             embedding_model="clip-test",
         )
         pipeline.image_extractor.extract_and_save.return_value = [fake_image]
 
         pipeline.association = MagicMock()
-        fake_chunk.related_images = ["imgabc"]
-        fake_image.linked_chunks = ["abc123"]
+        fake_chunk.related_image_ids = ["imgabc"]
+        fake_image.related_chunk_ids = ["abc123"]
         pipeline.association.associate.return_value = ([fake_chunk], [fake_image])
 
+        pipeline.text_embedder = MagicMock()
+        pipeline.image_embedder = MagicMock()
+        pipeline.vector_store = MagicMock()
+        pipeline.bm25_index = MagicMock()
+        pipeline.eval_data = []
+
         # Real manifest backed by tmp_path
-        with patch("app.services.manifest.get_settings") as ms:
-            ms.return_value.DATA_DIR = str(tmp_path)
+        with patch("app.services.manifest.settings") as ms:
+            ms.METADATA_DIR = str(tmp_path)
             from app.services.manifest import IngestionManifest
             pipeline.manifest = IngestionManifest()
 
@@ -429,7 +435,7 @@ class TestIngestionPipeline:
         pdf_path = tmp_path / "test_manual.pdf"
         pdf_path.write_bytes(b"%PDF-1.4 fake")
 
-        result = pipeline._run_pipeline("test_manual", str(pdf_path), time.perf_counter())
+        result = pipeline._run_pipeline("test_manual", str(pdf_path), "test", time.perf_counter())
         assert result.success is True
         assert result.chunk_count == 1
         assert result.image_count == 1

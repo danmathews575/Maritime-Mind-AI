@@ -118,3 +118,30 @@ class AgentState(BaseModel):
     retrieved_chunks: List[RetrievalResult] = Field(default_factory=list)
     final_answer: str = ""
     error: Optional[str] = None
+
+class BenchmarkQuery(BaseModel):
+    query_id: str
+    query_text: str
+    intent: QueryIntent
+    expected_manual: str = ""
+    expected_page: Optional[int] = None
+    expected_chunk_ids: List[str] = Field(default_factory=list)
+    expected_image_id: Optional[str] = None
+
+class QueryEvalResult(BaseModel):
+    query_id: str
+    query_text: str
+    intent: QueryIntent
+    text_metrics: dict = Field(default_factory=dict)
+    image_metrics: dict = Field(default_factory=dict)
+    grounding_metrics: dict = Field(default_factory=dict)
+    errors: List[str] = Field(default_factory=list)
+
+class EvaluationReport(BaseModel):
+    timestamp: datetime = Field(default_factory=_utcnow)
+    benchmark_version: str = "v1.0"
+    total_queries: int = 0
+    metrics: dict = Field(default_factory=dict)
+    per_query_results: List[QueryEvalResult] = Field(default_factory=list)
+    failure_analysis: List[dict] = Field(default_factory=list)
+

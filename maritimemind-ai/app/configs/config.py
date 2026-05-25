@@ -14,8 +14,11 @@ class MaritimeMindSettings(BaseSettings):
     )
 
     # LLM Inference
+    LLM_PROVIDER: str = "ollama"  # "ollama", "gemini", or "openai"
     OLLAMA_BASE_URL: str = "http://localhost:11434"
     OLLAMA_MODEL: str = "llama3:8b"
+    GEMINI_API_KEY: str = ""
+    OPENAI_API_KEY: str = ""
 
     # Embedding Models
     TEXT_EMBEDDING_MODEL: str = "all-MiniLM-L6-v2"
@@ -40,7 +43,7 @@ class MaritimeMindSettings(BaseSettings):
     # Retrieval
     TOP_K_RESULTS: int = 10
     RRF_K: int = 60
-    CONFIDENCE_THRESHOLD: float = 0.6
+    CONFIDENCE_THRESHOLD: float = 0.3
     RERANKING_ENABLED: bool = True
     RERANKER_MODEL: str = "cross-encoder/ms-marco-MiniLM-L-6-v2"
 

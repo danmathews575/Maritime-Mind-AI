@@ -15,8 +15,12 @@ langchain==0.3.25
 langchain-community==0.3.23
 langchain-core==0.3.58
 langchain-text-splitters==0.3.8
-langgraph==0.4.8
-
+langgraph==0.3.31
+langgraph-checkpoint==2.0.26
+langgraph-prebuilt==0.1.8
+langgraph-sdk==0.1.74
+langchain-google-genai==2.0.1
+langchain-openai==0.2.1
 # Vector Database & Retrieval
 chromadb==0.6.3
 sentence-transformers==4.1.0

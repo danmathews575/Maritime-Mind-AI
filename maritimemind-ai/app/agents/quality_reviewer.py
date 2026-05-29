@@ -1,8 +1,8 @@
-import logging
+from app.utils.logger import setup_logger
 import re
 from app.agents.state import AgentState
 
-logger = logging.getLogger(__name__)
+logger = setup_logger("maritimemind.agents.quality_reviewer")
 
 MIN_RESPONSE_LENGTH = 50
 

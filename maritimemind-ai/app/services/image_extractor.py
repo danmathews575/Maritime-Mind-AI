@@ -68,15 +68,25 @@ class ImageExtractorService:
                 if not out_path.exists():
                     img.save(out_path, format="PNG")
 
-                # OCR
+                # OCR and Auto-Tagging
                 ocr_text = ""
                 ocr_quality = 1.0
+                tags = []
                 if ocr_service:
                     try:
                         ocr_text = ocr_service.extract(str(out_path))
                         if ocr_text:
                             alnum = sum(c.isalnum() for c in ocr_text)
                             ocr_quality = alnum / len(ocr_text) if len(ocr_text) > 0 else 0.0
+                            
+                            # Auto-tagging based on OCR
+                            lower_ocr = ocr_text.lower()
+                            if "diagram" in lower_ocr: tags.append("diagram")
+                            if "flow" in lower_ocr or "flowchart" in lower_ocr: tags.append("flowchart")
+                            if "pipe" in lower_ocr or "piping" in lower_ocr: tags.append("piping")
+                            if "circuit" in lower_ocr or "electrical" in lower_ocr: tags.append("electrical")
+                            if "schematic" in lower_ocr: tags.append("schematic")
+                            if "table" in lower_ocr: tags.append("table")
                     except Exception as e:
                         logger.warning(f"OCR failed for {image_id}: {e}")
                         ocr_quality = 0.0
@@ -90,6 +100,7 @@ class ImageExtractorService:
                     page_number=raw_img.page_number,
                     image_path=str(out_path),
                     caption="",
+                    tags=tags,
                     bbox=bbox,
                     linked_chunks=[],
                     ocr_text=ocr_text,
@@ -121,7 +132,7 @@ class ImageExtractorService:
             return False
             
         aspect = width / height if height > 0 else 0
-        if aspect > 8.0 or aspect < 0.125:
+        if aspect > 4.0 or aspect < 0.25:
             return False
             
         return True
@@ -140,14 +151,14 @@ class ImageExtractorService:
         avg_stddev = sum(stat.stddev) / len(stat.stddev)
         
         # Solid colors / practically blank have very low stddev
-        if avg_stddev < 5.0:
+        if avg_stddev < 15.0:
             return 0.1
             
         confidence = 0.9
         
         # Slight penalty for smaller images
         area = img.width * img.height
-        if area < 100000:
+        if area < 80000:
             confidence -= 0.1
             
         return min(max(confidence, 0.0), 1.0)

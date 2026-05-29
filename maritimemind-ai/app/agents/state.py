@@ -24,8 +24,15 @@ class AgentState(TypedDict):
     verification_passed: bool
     verification_notes: str
     
+    # Memory tracking
+    session_id: str
+    
     # Synthesis
     response_text: str
+    
+    # Diagnostic state tracking
+    active_fault_tree: str
+    current_diagnosis_node: str
     citations: List[Dict[str, Any]]
     attached_images: List[str]  # file paths of attached images
     
@@ -34,6 +41,7 @@ class AgentState(TypedDict):
     quality_notes: str
     
     # Control
+    next_agent: Optional[str]
     retry_count: int
     max_retries: int
     error: Optional[str]

@@ -1,10 +1,10 @@
-import logging
+from app.utils.logger import setup_logger
 from app.agents.state import AgentState
 from app.services.vector_store import VectorStoreService
 from app.services.clip_embedding import ImageEmbeddingService
 from app.retrieval.image_retrieval import ImageRetrievalService
 
-logger = logging.getLogger(__name__)
+logger = setup_logger("maritimemind.agents.visual_specialist")
 
 # Initialize services once to avoid reloading models
 _vs = VectorStoreService()

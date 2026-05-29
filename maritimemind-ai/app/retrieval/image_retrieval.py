@@ -34,13 +34,7 @@ class ImageRetrievalService:
         merged_metadata: Dict[str, ImageMetadata] = {}
         clip_scores: Dict[str, float] = {}
         
-        for hit in clip_hits:
-            img_id = hit["id"]
-            # Reconstruct ImageMetadata. It's returned as raw dict from chroma.
-            # We fetch it properly using get_images_by_ids
-            # Or just use the metadata dict
-            pass
-        
+
         # Fetch proper schemas for clip hits
         clip_hit_ids = [hit["id"] for hit in clip_hits]
         clip_images = self.vs.get_images_by_ids(clip_hit_ids)
@@ -89,9 +83,9 @@ class ImageRetrievalService:
                 (0.05 * img_meta.diagram_confidence)
             )
             
-            # Subsystem boost logic: If matched, let's say +0.10
+            # Subsystem boost logic
             if subsystem_boost > 0:
-                raw_score += 0.10
+                raw_score += subsystem_boost
 
             final_score = raw_score * diagram_weight
 
@@ -114,29 +108,37 @@ class ImageRetrievalService:
         return retrieved_images[:top_k]
 
     def _get_diagram_weight(self, img: ImageMetadata) -> float:
-        text = f"{img.caption} {' '.join(img.tags)}".lower()
-        if "piping" in text or "pipe" in text: return 1.0
-        if "wiring" in text or "electrical" in text: return 1.0
-        if "flow chart" in text or "flowchart" in text: return 0.9
-        if "layout" in text or "map" in text: return 0.9
-        if "cross section" in text or "cross-section" in text: return 0.85
-        if "radar" in text or "ecdis" in text or "interface" in text: return 0.85
-        return 0.4
+        text = f"{img.caption} {' '.join(img.tags)} {img.ocr_text}".lower()
+        if "piping" in text or "pipe" in text: return 1.2
+        if "wiring" in text or "electrical" in text or "circuit" in text: return 1.2
+        if "flow chart" in text or "flowchart" in text or "flow" in text: return 1.15
+        if "layout" in text or "map" in text or "schematic" in text: return 1.15
+        if "cross section" in text or "cross-section" in text: return 1.1
+        if "radar" in text or "ecdis" in text or "interface" in text: return 1.1
+        if "diagram" in text or "figure" in text or "fig" in text: return 1.05
+        return 1.0
 
     def _calculate_subsystem_boost(self, query: str, img: ImageMetadata, text_results: List[RetrievalResult]) -> float:
-        # Check against text results
+        """Generic keyword overlap between query/text results and image metadata."""
+        img_text = f"{img.caption} {' '.join(img.tags)} {img.section_title} {img.ocr_text}".lower()
+
+        # Check against text results subsystem/department
         for res in text_results:
-            if res.chunk.subsystem and res.chunk.subsystem.lower() in (img.caption + " ".join(img.tags)).lower():
-                return 1.0
-            if res.chunk.department and res.chunk.department.lower() in (img.caption + " ".join(img.tags)).lower():
-                return 1.0
+            if res.chunk.subsystem and res.chunk.subsystem != "general":
+                if res.chunk.subsystem.lower() in img_text:
+                    return 0.15
+            if res.chunk.department and res.chunk.department != "general":
+                if res.chunk.department.lower() in img_text:
+                    return 0.1
+
+        # Generic keyword overlap: only match highly specific/long words to avoid false positives
+        query_words = [w.lower() for w in query.split() if len(w) > 5]
+        stop_words = {"show", "explain", "please", "provide", "diagram", "figure", "picture"}
         
-        # Check against query
-        if "cooling" in query.lower() and "cooling" in img.caption.lower():
-            return 1.0
-        if "ballast" in query.lower() and "ballast" in img.caption.lower():
-            return 1.0
-            
+        for word in query_words:
+            if word not in stop_words and word in img_text:
+                return 0.1
+
         return 0.0
 
     def _calculate_proximity_boost(self, img: ImageMetadata, text_results: List[RetrievalResult]) -> float:

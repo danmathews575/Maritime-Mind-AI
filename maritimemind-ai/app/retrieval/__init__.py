@@ -3,6 +3,7 @@ from .hybrid_search import HybridSearchEngine
 from .reranker import RerankerService
 from .scoring import ConfidenceScorer
 from .controller import RetrievalController
+from .image_retrieval import ImageRetrievalService
 
 __all__ = [
     "QueryClassifier",
@@ -10,4 +11,5 @@ __all__ = [
     "RerankerService",
     "ConfidenceScorer",
     "RetrievalController",
+    "ImageRetrievalService",
 ]

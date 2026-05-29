@@ -1,9 +1,9 @@
-import logging
+from app.utils.logger import setup_logger
 from app.agents.state import AgentState
 from app.models.schemas import QueryIntent
 from app.retrieval.query_classifier import QueryClassifier
 
-logger = logging.getLogger(__name__)
+logger = setup_logger("maritimemind.agents.router")
 
 # Initialize the classifier and expander once
 _classifier = QueryClassifier()
@@ -45,7 +45,10 @@ def context_router_agent(state: AgentState) -> AgentState:
         strategy = "text_only"
     elif intent == QueryIntent.TROUBLESHOOTING:
         strategy = "multimodal"
-    elif intent == QueryIntent.DIAGRAM_REQUEST:
+        logger.info("Routing to structured diagnosis workflow.")
+        state["next_agent"] = "diagnosis"
+
+    if intent == QueryIntent.DIAGRAM_REQUEST:
         strategy = "image_priority"
     elif intent == QueryIntent.EMERGENCY:
         strategy = "emergency"

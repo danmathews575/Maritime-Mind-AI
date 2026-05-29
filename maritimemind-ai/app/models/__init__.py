@@ -3,11 +3,16 @@ from .schemas import (
     TextChunk,
     ImageMetadata,
     RetrievalScores,
+    ImageExplainability,
+    RetrievedImage,
     RetrievalResult,
     QueryIntent,
     IngestionManifestEntry,
     ChatMessage,
-    AgentState
+    AgentState,
+    BenchmarkQuery,
+    QueryEvalResult,
+    EvaluationReport,
 )
 
 __all__ = [
@@ -15,9 +20,14 @@ __all__ = [
     "TextChunk",
     "ImageMetadata",
     "RetrievalScores",
+    "ImageExplainability",
+    "RetrievedImage",
     "RetrievalResult",
     "QueryIntent",
     "IngestionManifestEntry",
     "ChatMessage",
-    "AgentState"
+    "AgentState",
+    "BenchmarkQuery",
+    "QueryEvalResult",
+    "EvaluationReport",
 ]

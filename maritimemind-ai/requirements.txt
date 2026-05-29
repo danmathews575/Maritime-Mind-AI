@@ -1,5 +1,5 @@
 # ============================================================
-# MaritimeMind AI — Pinned Requirements (Phase 2)
+# MaritimeMind AI — Pinned Requirements (Phase 10 — Full Stack)
 # All versions pinned for fast, reproducible pip install.
 # ============================================================
 

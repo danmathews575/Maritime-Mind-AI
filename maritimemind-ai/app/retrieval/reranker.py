@@ -1,4 +1,5 @@
 from typing import List
+import time
 from sentence_transformers import CrossEncoder
 
 from app.configs.config import settings
@@ -29,7 +30,10 @@ class RerankerService:
         Reranks a list of RetrievalResults using a CrossEncoder.
         Only the top `top_n` items are processed to save computation.
         """
-        if not self._enabled or not results:
+        if not self._enabled:
+            logger.debug("Reranking disabled, returning results unchanged.")
+            return results
+        if not results:
             return results
 
         self._lazy_load()
@@ -41,11 +45,14 @@ class RerankerService:
         pairs = [[query, res.chunk.content] for res in candidates]
         
         # Predict scores
+        start_time = time.time()
         try:
             scores = self._model.predict(pairs)
         except Exception as e:
             logger.error(f"Cross-encoder prediction failed: {e}")
             return results
+        elapsed = time.time() - start_time
+        logger.info(f"Reranked {len(candidates)} candidates in {elapsed:.3f}s")
 
         # Update scores in the RetrievalResult objects
         for i, res in enumerate(candidates):

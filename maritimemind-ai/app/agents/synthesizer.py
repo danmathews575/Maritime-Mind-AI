@@ -1,9 +1,9 @@
-import logging
+from app.utils.logger import setup_logger
 from typing import List, Dict, Any
 from app.agents.state import AgentState
 from app.services.llm_service import LLMService
 
-logger = logging.getLogger(__name__)
+logger = setup_logger("maritimemind.agents.synthesizer")
 
 # Initialize LLM Service once
 _llm = LLMService()
@@ -75,7 +75,8 @@ def response_synthesis_agent(state: AgentState) -> AgentState:
         "## Instructions:\n"
         "- Answer precisely and technically\n"
         "- Reference source manual and page numbers in your answer\n"
-        "- If diagrams are available, mention them\n"
+        "- If diagrams are available, mention them by their Image number, but DO NOT attempt to embed markdown images like ![]()\n"
+        "- The system will automatically display the images to the user alongside your text\n"
         "- If you cannot find sufficient information, say: \"Insufficient information in \n"
         "  the available manuals to fully answer this question.\"\n"
         "- Format procedures as numbered steps\n"

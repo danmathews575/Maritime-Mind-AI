@@ -1,10 +1,10 @@
-import logging
+from app.utils.logger import setup_logger
 import requests
 import random
 from typing import Optional
 from app.configs.config import get_settings
 
-logger = logging.getLogger(__name__)
+logger = setup_logger("maritimemind.services.llm")
 
 class LLMService:
     """

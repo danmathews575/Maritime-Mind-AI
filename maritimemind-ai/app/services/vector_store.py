@@ -91,33 +91,7 @@ class VectorStoreService:
         metas = results["metadatas"]
         
         for i in range(len(ids)):
-            meta = metas[i]
-            chunks.append(TextChunk(
-                chunk_id=ids[i],
-                manual_name=meta.get("manual_name", ""),
-                content=docs[i],
-                page_number=meta.get("page_number", 0),
-                ship_id=meta.get("ship_id") or None,
-                language=meta.get("language") or None,
-                department=meta.get("department") or "",
-                subsystem=meta.get("subsystem") or "general",
-                document_type=meta.get("document_type") or "manual",
-                section_title=meta.get("section_title") or "",
-                contains_procedure=meta.get("contains_procedure", False),
-                contains_warning=meta.get("contains_warning", False),
-                contains_emergency_workflow=meta.get("contains_emergency_workflow", False),
-                contains_diagram_reference=meta.get("contains_diagram_reference", False),
-                importance=meta.get("importance") or "medium",
-                applicable_intents=[QueryIntent(q) for q in json.loads(meta.get("applicable_intents", "[]"))],
-                hierarchy_path=json.loads(meta.get("hierarchy_path", "[]")),
-                related_image_ids=json.loads(meta.get("related_image_ids", "[]")),
-                diagram_references=json.loads(meta.get("diagram_references", "[]")),
-                keywords=json.loads(meta.get("keywords", "[]")),
-                previous_chunk_id=meta.get("previous_chunk_id") or None,
-                next_chunk_id=meta.get("next_chunk_id") or None,
-                parent_chunk_id=meta.get("parent_chunk_id") or None,
-                embedding_model=meta.get("embedding_model") or "",
-            ))
+            chunks.append(self._reconstruct_text_chunk(ids[i], docs[i], metas[i]))
         return chunks
 
     def get_text_chunks_by_ids(self, ids: List[str]) -> List[TextChunk]:
@@ -133,33 +107,7 @@ class VectorStoreService:
         metas = results["metadatas"]
         
         for i in range(len(r_ids)):
-            meta = metas[i]
-            chunks.append(TextChunk(
-                chunk_id=r_ids[i],
-                manual_name=meta.get("manual_name", ""),
-                content=docs[i],
-                page_number=meta.get("page_number", 0),
-                ship_id=meta.get("ship_id") or None,
-                language=meta.get("language") or None,
-                department=meta.get("department") or "",
-                subsystem=meta.get("subsystem") or "general",
-                document_type=meta.get("document_type") or "manual",
-                section_title=meta.get("section_title") or "",
-                contains_procedure=meta.get("contains_procedure", False),
-                contains_warning=meta.get("contains_warning", False),
-                contains_emergency_workflow=meta.get("contains_emergency_workflow", False),
-                contains_diagram_reference=meta.get("contains_diagram_reference", False),
-                importance=meta.get("importance") or "medium",
-                applicable_intents=[QueryIntent(q) for q in json.loads(meta.get("applicable_intents", "[]"))],
-                hierarchy_path=json.loads(meta.get("hierarchy_path", "[]")),
-                related_image_ids=json.loads(meta.get("related_image_ids", "[]")),
-                diagram_references=json.loads(meta.get("diagram_references", "[]")),
-                keywords=json.loads(meta.get("keywords", "[]")),
-                previous_chunk_id=meta.get("previous_chunk_id") or None,
-                next_chunk_id=meta.get("next_chunk_id") or None,
-                parent_chunk_id=meta.get("parent_chunk_id") or None,
-                embedding_model=meta.get("embedding_model") or "",
-            ))
+            chunks.append(self._reconstruct_text_chunk(r_ids[i], docs[i], metas[i]))
         return chunks
 
     def add_image_embeddings(self, images: List[ImageMetadata], embeddings: List[List[float]]) -> int:
@@ -290,6 +238,36 @@ class VectorStoreService:
             "embedding_model": chunk.embedding_model or "",
             "created_at": str(chunk.created_at),
         }
+
+    @staticmethod
+    def _reconstruct_text_chunk(chunk_id: str, document: str, meta: dict) -> TextChunk:
+        """Reconstructs a TextChunk from ChromaDB stored metadata."""
+        return TextChunk(
+            chunk_id=chunk_id,
+            manual_name=meta.get("manual_name", ""),
+            content=document,
+            page_number=meta.get("page_number", 0),
+            ship_id=meta.get("ship_id") or None,
+            language=meta.get("language") or None,
+            department=meta.get("department") or "",
+            subsystem=meta.get("subsystem") or "general",
+            document_type=meta.get("document_type") or "manual",
+            section_title=meta.get("section_title") or "",
+            contains_procedure=meta.get("contains_procedure", False),
+            contains_warning=meta.get("contains_warning", False),
+            contains_emergency_workflow=meta.get("contains_emergency_workflow", False),
+            contains_diagram_reference=meta.get("contains_diagram_reference", False),
+            importance=meta.get("importance") or "medium",
+            applicable_intents=[QueryIntent(q) for q in json.loads(meta.get("applicable_intents", "[]"))],
+            hierarchy_path=json.loads(meta.get("hierarchy_path", "[]")),
+            related_image_ids=json.loads(meta.get("related_image_ids", "[]")),
+            diagram_references=json.loads(meta.get("diagram_references", "[]")),
+            keywords=json.loads(meta.get("keywords", "[]")),
+            previous_chunk_id=meta.get("previous_chunk_id") or None,
+            next_chunk_id=meta.get("next_chunk_id") or None,
+            parent_chunk_id=meta.get("parent_chunk_id") or None,
+            embedding_model=meta.get("embedding_model") or "",
+        )
 
     @staticmethod
     def _build_image_metadata(img: ImageMetadata) -> Dict[str, Any]:

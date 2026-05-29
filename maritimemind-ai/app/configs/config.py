@@ -1,4 +1,5 @@
 import os
+from typing import Optional
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from pathlib import Path
 
@@ -19,6 +20,7 @@ class MaritimeMindSettings(BaseSettings):
     OLLAMA_MODEL: str = "llama3:8b"
     GEMINI_API_KEY: str = ""
     OPENAI_API_KEY: str = ""
+    NVIDIA_API_KEY: str = ""
 
     # Embedding Models
     TEXT_EMBEDDING_MODEL: str = "all-MiniLM-L6-v2"
@@ -43,7 +45,7 @@ class MaritimeMindSettings(BaseSettings):
     # Retrieval
     TOP_K_RESULTS: int = 10
     RRF_K: int = 60
-    CONFIDENCE_THRESHOLD: float = 0.3
+    CONFIDENCE_THRESHOLD: float = 0.6
     RERANKING_ENABLED: bool = True
     RERANKER_MODEL: str = "cross-encoder/ms-marco-MiniLM-L-6-v2"
 
@@ -66,6 +68,12 @@ class MaritimeMindSettings(BaseSettings):
 
     # Device Configuration
     DEVICE: str = "cpu"  # "cpu" or "cuda"
+
+    # Future Phases (stubs — uncomment/configure when needed)
+    OCR_ENABLED: bool = True  # Phase 12: Tesseract/Vision LLM OCR
+    NEO4J_URI: Optional[str] = None  # Future: graph-based knowledge store
+    STREAMING_ENABLED: bool = False  # Phase 12: WebSocket streaming
+    MAX_CONVERSATION_HISTORY: int = 10  # Phase 8: context window limit
 
 # Singleton instance
 settings = MaritimeMindSettings()

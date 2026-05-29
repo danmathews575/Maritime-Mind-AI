@@ -1,7 +1,7 @@
 import re
 import logging
 from typing import List
-from app.memory.conversation_memory import ChatMessage
+from app.models.schemas import ChatMessage
 
 logger = logging.getLogger(__name__)
 

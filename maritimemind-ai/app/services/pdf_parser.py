@@ -10,6 +10,7 @@ import re
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import List, Optional, Tuple
+import base64
 
 import fitz  # PyMuPDF
 import pdfplumber
@@ -135,6 +136,33 @@ class PdfParserService:
 
         # Step 2: Extract text blocks (PyMuPDF), skip regions covered by tables
         parsed.text_blocks = self._extract_text_blocks(fitz_page, page_number, table_bboxes)
+
+        # Fallback Vision OCR for scanned pages (Phase 12)
+        if not parsed.text_blocks and settings.OCR_ENABLED:
+            logger.info(f"Page {page_number} has no text blocks. Running Vision OCR fallback...")
+            try:
+                from app.services.vision_ocr import NvidiaVisionService
+                if not hasattr(self, '_vision_service'):
+                    self._vision_service = NvidiaVisionService()
+                
+                # Render page to image (150 DPI is usually sufficient for OCR)
+                pix = fitz_page.get_pixmap(dpi=150)
+                img_data = pix.tobytes("jpeg")
+                b64_img = base64.b64encode(img_data).decode("utf-8")
+                
+                ocr_text = self._vision_service.extract_text_from_image(b64_img)
+                if ocr_text:
+                    rect = fitz_page.rect
+                    tb = TextBlock(
+                        text=ocr_text,
+                        font_size=12.0,
+                        font_flags=0,
+                        bbox=(rect.x0, rect.y0, rect.x1, rect.y1),
+                        page_number=page_number
+                    )
+                    parsed.text_blocks.append(tb)
+            except Exception as e:
+                logger.warning(f"Vision OCR fallback failed for page {page_number}: {e}")
 
         # Step 3: Extract images (PyMuPDF)
         parsed.images = self._extract_images(fitz_page, page_number)

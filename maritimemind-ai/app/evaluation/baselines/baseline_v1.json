@@ -1,5 +1,5 @@
 {
-    "timestamp": "2026-05-24T16:50:55.681330Z",
+    "timestamp": "2026-05-29T05:17:13.197204Z",
     "benchmark_version": "v1.0",
     "total_queries": 20,
     "metrics": {
@@ -31,7 +31,7 @@
                 "mrr": 0.0,
                 "map": 0.0,
                 "ndcg_at_5": 0.0,
-                "max_confidence": 0.8186448508640617
+                "max_confidence": 0.8186448576765887
             },
             "image_metrics": {},
             "grounding_metrics": {},
@@ -63,7 +63,7 @@
                 "mrr": 0.0,
                 "map": 0.0,
                 "ndcg_at_5": 0.0,
-                "max_confidence": 0.8625056387112777
+                "max_confidence": 0.8625056536723232
             },
             "image_metrics": {},
             "grounding_metrics": {},
@@ -79,7 +79,7 @@
                 "mrr": 0.0,
                 "map": 0.0,
                 "ndcg_at_5": 0.0,
-                "max_confidence": 0.8590793557107086
+                "max_confidence": 0.8590793456022875
             },
             "image_metrics": {
                 "hit_at_3": false,
@@ -98,7 +98,7 @@
                 "mrr": 0.0,
                 "map": 0.0,
                 "ndcg_at_5": 0.0,
-                "max_confidence": 0.8942120584251095
+                "max_confidence": 0.8942126237420835
             },
             "image_metrics": {},
             "grounding_metrics": {},
@@ -114,7 +114,7 @@
                 "mrr": 0.0,
                 "map": 0.0,
                 "ndcg_at_5": 0.0,
-                "max_confidence": 0.8474754015471326
+                "max_confidence": 0.8474755029811071
             },
             "image_metrics": {},
             "grounding_metrics": {},
@@ -130,7 +130,7 @@
                 "mrr": 0.0,
                 "map": 0.0,
                 "ndcg_at_5": 0.0,
-                "max_confidence": 0.7410615733031727
+                "max_confidence": 0.7410616747635865
             },
             "image_metrics": {},
             "grounding_metrics": {},
@@ -146,7 +146,7 @@
                 "mrr": 0.0,
                 "map": 0.0,
                 "ndcg_at_5": 0.0,
-                "max_confidence": 0.9413674952242956
+                "max_confidence": 0.9413675223341358
             },
             "image_metrics": {},
             "grounding_metrics": {},
@@ -162,7 +162,7 @@
                 "mrr": 0.5,
                 "map": 0.5,
                 "ndcg_at_5": 0.6309297535714575,
-                "max_confidence": 0.8294977498464267
+                "max_confidence": 0.8294977569464288
             },
             "image_metrics": {
                 "hit_at_3": false,
@@ -197,7 +197,7 @@
                 "mrr": 0.0,
                 "map": 0.0,
                 "ndcg_at_5": 0.0,
-                "max_confidence": 0.7278328669387287
+                "max_confidence": 0.7278328584202607
             },
             "image_metrics": {},
             "grounding_metrics": {},
@@ -213,7 +213,7 @@
                 "mrr": 0.5,
                 "map": 0.5,
                 "ndcg_at_5": 0.6309297535714575,
-                "max_confidence": 0.8176335619218658
+                "max_confidence": 0.8176335480613397
             },
             "image_metrics": {},
             "grounding_metrics": {},
@@ -229,7 +229,7 @@
                 "mrr": 1.0,
                 "map": 1.0,
                 "ndcg_at_5": 1.0,
-                "max_confidence": 0.6650211571889061
+                "max_confidence": 0.6650210940182546
             },
             "image_metrics": {},
             "grounding_metrics": {},
@@ -245,7 +245,7 @@
                 "mrr": 0.0,
                 "map": 0.0,
                 "ndcg_at_5": 0.0,
-                "max_confidence": 0.7080343961344737
+                "max_confidence": 0.7080343561402649
             },
             "image_metrics": {},
             "grounding_metrics": {},
@@ -261,7 +261,7 @@
                 "mrr": 0.0,
                 "map": 0.0,
                 "ndcg_at_5": 0.0,
-                "max_confidence": 0.7447865202068213
+                "max_confidence": 0.7447865282276337
             },
             "image_metrics": {
                 "hit_at_3": false,
@@ -280,7 +280,7 @@
                 "mrr": 1.0,
                 "map": 1.0,
                 "ndcg_at_5": 1.0,
-                "max_confidence": 0.7805662989615942
+                "max_confidence": 0.7805663435580332
             },
             "image_metrics": {},
             "grounding_metrics": {},
@@ -296,7 +296,7 @@
                 "mrr": 0.0,
                 "map": 0.0,
                 "ndcg_at_5": 0.0,
-                "max_confidence": 0.9132620943237539
+                "max_confidence": 0.9132621240277687
             },
             "image_metrics": {},
             "grounding_metrics": {},
@@ -312,7 +312,7 @@
                 "mrr": 0.0,
                 "map": 0.0,
                 "ndcg_at_5": 0.0,
-                "max_confidence": 0.6202438258900578
+                "max_confidence": 0.6202438997946726
             },
             "image_metrics": {},
             "grounding_metrics": {},
@@ -328,7 +328,7 @@
                 "mrr": 0.3333333333333333,
                 "map": 0.3333333333333333,
                 "ndcg_at_5": 0.5,
-                "max_confidence": 0.7014880603302438
+                "max_confidence": 0.7014879841174624
             },
             "image_metrics": {},
             "grounding_metrics": {},

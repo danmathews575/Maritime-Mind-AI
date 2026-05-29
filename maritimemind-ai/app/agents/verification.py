@@ -1,9 +1,9 @@
-import logging
+from app.utils.logger import setup_logger
 from app.agents.state import AgentState
 from app.models.schemas import QueryIntent
 from app.configs.config import get_settings
 
-logger = logging.getLogger(__name__)
+logger = setup_logger("maritimemind.agents.verification")
 
 def retrieval_verification_agent(state: AgentState) -> AgentState:
     """

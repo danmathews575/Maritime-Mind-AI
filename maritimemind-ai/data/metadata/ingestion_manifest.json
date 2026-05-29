@@ -110,5 +110,26 @@
     "chunk_count": 1,
     "image_count": 0,
     "errors": []
+  },
+  "SHIP CON 5 STUDENT SECTIONS": {
+    "status": "COMPLETED",
+    "processed_date": "2026-05-29T06:27:50.258102+00:00",
+    "chunk_count": 0,
+    "image_count": 23,
+    "errors": []
+  },
+  "Construction - Stem": {
+    "status": "COMPLETED",
+    "processed_date": "2026-05-29T06:25:55.507197+00:00",
+    "chunk_count": 20,
+    "image_count": 21,
+    "errors": []
+  },
+  "MARPOL Anx I - OPA - VRP - VGP": {
+    "status": "COMPLETED",
+    "processed_date": "2026-05-29T06:35:18.709589+00:00",
+    "chunk_count": 19,
+    "image_count": 20,
+    "errors": []
   }
 }

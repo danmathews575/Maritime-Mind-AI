@@ -1,4 +1,4 @@
-import logging
+from app.utils.logger import setup_logger
 from typing import Literal
 
 from langgraph.graph import StateGraph, START, END
@@ -10,6 +10,7 @@ from app.agents.visual_specialist import visual_specialist_agent
 from app.agents.verification import retrieval_verification_agent
 from app.agents.synthesizer import response_synthesis_agent
 from app.agents.quality_reviewer import quality_review_agent
+from app.agents.diagnosis_agent import diagnosis_agent
 
 # Text Retrieval components
 from app.retrieval.hybrid_search import HybridSearchEngine
@@ -20,7 +21,7 @@ from app.services.bm25_index import BM25IndexService
 from app.services.embedding import TextEmbeddingService
 from app.configs.config import get_settings
 
-logger = logging.getLogger(__name__)
+logger = setup_logger("maritimemind.orchestration.graph")
 settings = get_settings()
 
 # Initialize text retrieval services for the graph node
@@ -74,6 +75,11 @@ def text_retrieval_node(state: AgentState) -> AgentState:
 # Conditional Routing Functions
 def route_from_router(state: AgentState) -> str:
     """Route after intent classification."""
+    next_agent = state.get("next_agent")
+    logger.info(f"route_from_router: next_agent is '{next_agent}'")
+    if next_agent == "diagnosis":
+        return "diagnosis"
+        
     strategy = state.get("retrieval_strategy")
     if strategy == "image_priority":
         return "visual_specialist"
@@ -81,7 +87,6 @@ def route_from_router(state: AgentState) -> str:
 
 def route_from_visual(state: AgentState) -> str:
     """Route after visual specialist (if it ran first)."""
-    # If we haven't done text retrieval yet, do it.
     if not state.get("text_results"):
         return "text_retrieval"
     return "verification"
@@ -99,10 +104,9 @@ def route_from_verification(state: AgentState) -> str:
     if passed:
         return "synthesizer"
     
-    # Failed verification
     if state.get("retry_count", 0) < state.get("max_retries", 2):
-        return "text_retrieval"  # Loop back
-    return "synthesizer"  # Proceed with warning
+        return "text_retrieval"
+    return "synthesizer"
 
 def route_from_quality(state: AgentState) -> str:
     """Route after quality review."""
@@ -111,7 +115,7 @@ def route_from_quality(state: AgentState) -> str:
         return END
         
     if state.get("retry_count", 0) < state.get("max_retries", 2):
-        return "verification"  # Loop back to verification (or could go to retrieval)
+        return "verification"
         
     return END
 
@@ -126,6 +130,7 @@ def create_graph() -> StateGraph:
     workflow.add_node("verification", retrieval_verification_agent)
     workflow.add_node("synthesizer", response_synthesis_agent)
     workflow.add_node("quality_reviewer", quality_review_agent)
+    workflow.add_node("diagnosis", diagnosis_agent)
     
     # Define Edges
     workflow.add_edge(START, "context_router")
@@ -135,7 +140,8 @@ def create_graph() -> StateGraph:
         route_from_router,
         {
             "visual_specialist": "visual_specialist",
-            "text_retrieval": "text_retrieval"
+            "text_retrieval": "text_retrieval",
+            "diagnosis": "diagnosis"
         }
     )
     
@@ -167,6 +173,7 @@ def create_graph() -> StateGraph:
     )
     
     workflow.add_edge("synthesizer", "quality_reviewer")
+    workflow.add_edge("diagnosis", END)
     
     workflow.add_conditional_edges(
         "quality_reviewer",

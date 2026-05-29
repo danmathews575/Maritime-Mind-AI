@@ -4,11 +4,12 @@ from app.models.schemas import TextChunk
 
 def test_tokenize():
     # Should lowercase, remove stopwords, split by punctuation but keep hyphens
+    # and apply Porter Stemming ("working" -> "work")
     text = "The quick brown MAN-B&W pump is not working."
     tokens = tokenize(text)
     assert "man-b" in tokens
     assert "pump" in tokens
-    assert "working" in tokens
+    assert "work" in tokens
     assert "the" not in tokens  # stopword
     assert "not" in tokens      # kept stopword
 

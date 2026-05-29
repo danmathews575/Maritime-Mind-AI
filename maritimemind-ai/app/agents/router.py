@@ -15,11 +15,19 @@ def context_router_agent(state: AgentState) -> AgentState:
     Router Agent: Determines the intent of the user's query and 
     assigns the appropriate retrieval strategy.
     
+    Hardened routing logic:
+    - PROCEDURE → multimodal (procedures reference diagrams)
+    - TROUBLESHOOTING → multimodal + diagnosis routing
+    - DIAGRAM_REQUEST → image_priority
+    - EMERGENCY → emergency (fast-path, no retries)
+    - SOP_LOOKUP → text_only
+    - EXPLANATION → text_only
+    
     Args:
         state: The current AgentState.
         
     Returns:
-        Updated AgentState with intent and retrieval_strategy set.
+        Updated AgentState with intent, retrieval_strategy, and metadata hints set.
     """
     query = state.get("query", "")
     history = state.get("conversation_history", [])
@@ -34,21 +42,29 @@ def context_router_agent(state: AgentState) -> AgentState:
     else:
         logger.info(f"Router Agent analyzing query: '{query}'")
     
-    intent = _classifier.classify(query)
-    logger.info(f"Classified intent: {intent.name}")
+    # Classify with full metadata extraction
+    classification = _classifier.classify(query)
+    intent = classification.intent
+    logger.info(
+        f"Classified intent: {intent.name} | "
+        f"Department: {classification.department_hint or 'none'} | "
+        f"Subsystem: {classification.subsystem_hint or 'none'}"
+    )
     
     # Determine retrieval strategy based on intent
+    # HARDENED: Procedures are now multimodal because maintenance procedures
+    # routinely reference "See Figure X" diagrams, piping schematics, etc.
     strategy = "text_only"
+
     if intent == QueryIntent.EXPLANATION:
         strategy = "text_only"
     elif intent == QueryIntent.PROCEDURE:
-        strategy = "text_only"
+        strategy = "multimodal"  # Procedures often reference diagrams
     elif intent == QueryIntent.TROUBLESHOOTING:
         strategy = "multimodal"
         logger.info("Routing to structured diagnosis workflow.")
         state["next_agent"] = "diagnosis"
-
-    if intent == QueryIntent.DIAGRAM_REQUEST:
+    elif intent == QueryIntent.DIAGRAM_REQUEST:
         strategy = "image_priority"
     elif intent == QueryIntent.EMERGENCY:
         strategy = "emergency"
@@ -57,9 +73,15 @@ def context_router_agent(state: AgentState) -> AgentState:
     
     logger.info(f"Assigned retrieval strategy: {strategy}")
     
-    # Update state
+    # Update state with classification results
     state["intent"] = intent
     state["retrieval_strategy"] = strategy
+    
+    # Store metadata hints for downstream retrieval filtering
+    if classification.department_hint:
+        state["department_hint"] = classification.department_hint
+    if classification.subsystem_hint:
+        state["subsystem_hint"] = classification.subsystem_hint
     
     # Initialize some state fields if they aren't already
     if "text_results" not in state:
@@ -69,6 +91,7 @@ def context_router_agent(state: AgentState) -> AgentState:
     if "retry_count" not in state:
         state["retry_count"] = 0
     if "max_retries" not in state:
-        state["max_retries"] = 2
+        # Emergency queries get no retries — speed is critical
+        state["max_retries"] = 0 if intent == QueryIntent.EMERGENCY else 2
         
     return state

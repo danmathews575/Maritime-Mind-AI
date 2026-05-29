@@ -23,7 +23,7 @@ class MaritimeMindSettings(BaseSettings):
     NVIDIA_API_KEY: str = ""
 
     # Embedding Models
-    TEXT_EMBEDDING_MODEL: str = "all-MiniLM-L6-v2"
+    TEXT_EMBEDDING_MODEL: str = "BAAI/bge-small-en-v1.5"
     CLIP_MODEL_NAME: str = "ViT-B-32"
     CLIP_PRETRAINED: str = "laion2b_s34b_b79k"
 
@@ -47,7 +47,7 @@ class MaritimeMindSettings(BaseSettings):
     RRF_K: int = 60
     CONFIDENCE_THRESHOLD: float = 0.6
     RERANKING_ENABLED: bool = True
-    RERANKER_MODEL: str = "cross-encoder/ms-marco-MiniLM-L-6-v2"
+    RERANKER_MODEL: str = "cross-encoder/ms-marco-MiniLM-L-12-v2"
 
     # Storage Paths
     DATA_DIR: str = "./data"

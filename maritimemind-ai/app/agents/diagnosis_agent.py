@@ -46,14 +46,21 @@ def diagnosis_agent(state: AgentState) -> AgentState:
         # We will set the query in the state so the retrieval agent can find context if needed,
         # but diagnosis agent will format the immediate response.
         
-        prompt = f"""You are a marine engineering diagnostic assistant. 
-You are starting a troubleshooting workflow for: {tree.name}.
+        prompt = f"""You are a marine engineering diagnostic assistant aboard a vessel.
+You are starting a structured troubleshooting workflow for: {tree.name}.
 
-The first step is:
+ABSOLUTE RULES:
+1. Use ONLY the procedure steps defined in the fault tree. Do NOT add, modify, or invent diagnostic steps.
+2. If any step involves safety-critical systems (fuel oil, high pressure, high temperature, electrical), include appropriate ⚠️ WARNING markers.
+3. Do NOT suggest actions beyond what is stated in this step.
+4. Do NOT speculate about the root cause — follow the structured diagnostic flow.
+
+The first diagnostic step is:
 "{current_node.instruction}"
 
-Format this clearly for the user. Ask the question directly. 
-Do not provide the full fault tree, only focus on this single step.
+Format this clearly for the user. Present ONLY this single step. Ask the question directly.
+If possible answers are defined, list them for the user.
+Possible responses: {list(current_node.possible_answers) if current_node.possible_answers else 'Open response'}
 """
         response = _llm.generate(prompt)
         state["response_text"] = response
@@ -66,13 +73,17 @@ Do not provide the full fault tree, only focus on this single step.
         current_node = tree.get_node(diag_session.current_node_id)
         
         # Use LLM to evaluate user's response against possible answers
-        eval_prompt = f"""You are evaluating a user's answer during a troubleshooting workflow.
-The current step asked: "{current_node.instruction}"
-The user replied: "{query}"
+        eval_prompt = f"""You are evaluating a marine engineer's response during a structured troubleshooting workflow aboard a vessel.
+The diagnostic step asked: "{current_node.instruction}"
+The engineer replied: "{query}"
 
-The possible expected logical branches are: {list(current_node.next_nodes.keys())}.
-Which branch does the user's answer most closely map to? 
-Reply with ONLY the exact name of the branch. If the answer is ambiguous, reply with "UNKNOWN".
+The possible diagnostic branches are: {list(current_node.next_nodes.keys())}.
+
+Rules:
+1. Map the engineer's response to the MOST CLOSELY matching branch.
+2. Reply with ONLY the exact name of the branch (one of: {list(current_node.next_nodes.keys())}).
+3. If the response is clearly ambiguous or unrelated, reply with exactly "UNKNOWN".
+4. Do NOT add explanation or commentary.
 """
         evaluation = _llm.generate(eval_prompt).strip()
         logger.info(f"LLM evaluated user response as: {evaluation}")
@@ -86,18 +97,33 @@ Reply with ONLY the exact name of the branch. If the answer is ambiguous, reply 
             if next_node.action_type in ["resolution", "terminal_unresolved"]:
                 diag_session.is_complete = True
                 workflow_manager.clear_session(session_id)
-                prompt = f"""You are a marine engineering diagnostic assistant.
-The diagnosis is concluding. The final step/resolution is:
+                prompt = f"""You are a marine engineering diagnostic assistant aboard a vessel.
+The diagnostic workflow is concluding with a {'resolution' if next_node.action_type == 'resolution' else 'recommendation for further investigation'}.
+
+Final diagnostic conclusion:
 "{next_node.instruction}"
 
-Format this clearly for the user. Provide any helpful concluding remarks.
+ABSOLUTE RULES:
+1. Present ONLY what is stated in the conclusion above. Do NOT invent additional repair steps.
+2. If this involves safety-critical work, include appropriate ⚠️ WARNING markers.
+3. Remind the user to log the fault and action taken in the engine room logbook.
+4. If the action type is 'terminal_unresolved', clearly state that this requires further engineering team intervention and should not be attempted without proper authorization.
+
+Format the conclusion clearly for the user.
 """
             else:
-                prompt = f"""You are a marine engineering diagnostic assistant.
-The user responded '{evaluation}'. The next step in troubleshooting is:
+                prompt = f"""You are a marine engineering diagnostic assistant aboard a vessel.
+The engineer responded '{evaluation}' to the previous step. Moving to the next diagnostic step.
+
+Next diagnostic step:
 "{next_node.instruction}"
 
-Format this clearly for the user. Ask the question directly.
+ABSOLUTE RULES:
+1. Present ONLY this single step. Do NOT add diagnostic steps not in the workflow.
+2. If this step involves safety-critical systems, include appropriate ⚠️ WARNING markers.
+3. Ask the question or instruction directly and clearly.
+4. If possible answers are defined, list them for the user.
+Possible responses: {list(next_node.possible_answers) if next_node.possible_answers else 'Open response'}
 """
             response = _llm.generate(prompt)
             state["response_text"] = response

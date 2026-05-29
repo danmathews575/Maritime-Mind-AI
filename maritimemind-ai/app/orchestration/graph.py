@@ -13,66 +13,83 @@ from app.agents.quality_reviewer import quality_review_agent
 from app.agents.diagnosis_agent import diagnosis_agent
 
 # Text Retrieval components
-from app.retrieval.hybrid_search import HybridSearchEngine
-from app.retrieval.reranker import RerankerService
-from app.retrieval.scoring import ConfidenceScorer
-from app.services.vector_store import VectorStoreService
-from app.services.bm25_index import BM25IndexService
-from app.services.embedding import TextEmbeddingService
+from app.retrieval.controller import RetrievalController
+from app.services.llm_service import LLMService
 from app.configs.config import get_settings
+from app.models.schemas import QueryIntent
 
 logger = setup_logger("maritimemind.orchestration.graph")
 settings = get_settings()
 
-# Initialize text retrieval services for the graph node
+# Initialize services
 try:
-    _vs = VectorStoreService()
-    _bm25 = BM25IndexService()
-    if not _bm25.is_built:
-        _bm25.load()
-    _embedder = TextEmbeddingService()
-    _hybrid = HybridSearchEngine(_vs, _bm25, _embedder)
-    _reranker = RerankerService()
-    _scorer = ConfidenceScorer(
-        bm25_weight=0.3 if settings.RERANKING_ENABLED else 0.5,
-        vector_weight=0.4 if settings.RERANKING_ENABLED else 0.5,
-        rerank_weight=0.3 if settings.RERANKING_ENABLED else 0.0
-    )
+    _controller = RetrievalController()
+    _llm = LLMService()
 except Exception as e:
-    logger.error(f"Failed to initialize text retrieval services: {e}")
+    logger.error(f"Failed to initialize retrieval controller: {e}")
 
 def text_retrieval_node(state: AgentState) -> AgentState:
-    """Dedicated node for text retrieval to allow graph orchestration."""
+    """
+    Dedicated node for text retrieval orchestration.
+    Implements hybrid query expansion on retry:
+    - First attempt: direct search with metadata filters
+    - Retry: LLM-based query rewriting to handle ambiguity/drift
+    """
     query = state.get("query", "")
-    logger.info(f"Text Retrieval Node executing for query: '{query}'")
+    retry_count = state.get("retry_count", 0)
+    intent = state.get("intent")
     
-    top_k = settings.TOP_K_RESULTS
+    logger.info(f"Text Retrieval Node executing for query: '{query}' (Retry: {retry_count})")
     
-    # Optional query expansion based on retry
-    if state.get("retry_count", 0) > 0:
-        logger.info("Retry detected, relaxing constraints (mock implementation).")
-        # Could implement actual query rewriting here if needed
+    # ── HYBRID QUERY REWRITING ON RETRY ─────────────────────────────────────
+    if retry_count > 0 and intent != QueryIntent.EMERGENCY:
+        logger.info(f"Retry {retry_count} triggered. Using LLM for query rewriting.")
         
-    results = _hybrid.search(query, top_k=top_k * 2)
-    
-    if results and settings.RERANKING_ENABLED:
-        results = _reranker.rerank(query, results, top_n=top_k * 2)
+        rewrite_prompt = (
+            "You are a maritime technical search assistant.\n"
+            f"The original query was: '{query}'\n"
+            "This query failed to retrieve relevant documents from the engineering manuals.\n"
+            "Rewrite this query into a highly specific technical search query using alternative maritime terminology, "
+            "expanding acronyms if necessary, and focusing on the core subsystem or procedure.\n"
+            "Output ONLY the rewritten query string. Do not include quotes or conversational text."
+        )
         
+        try:
+            rewritten_query = _llm.generate(rewrite_prompt, provider=state.get("llm_provider")).strip()
+            # Remove any surrounding quotes the LLM might have added
+            rewritten_query = rewritten_query.strip("'\"")
+            
+            if rewritten_query and rewritten_query != query:
+                logger.info(f"Query rewritten: '{query}' -> '{rewritten_query}'")
+                query = rewritten_query
+                state["query"] = query  # Update state so visual_specialist and synthesizer use it
+        except Exception as e:
+            logger.error(f"Query rewriting failed: {e}. Falling back to original query.")
+    
+    # ── EXECUTE HARDENED RETRIEVAL ──────────────────────────────────────────
+    # The controller now handles hybrid search, reranking, context expansion,
+    # and absolute confidence scoring internally.
+    filters = {}
+    if state.get("department_hint"):
+        filters["department"] = state.get("department_hint")
+        
+    results = _controller.retrieve(query, top_k=settings.TOP_K_RESULTS, filters=filters)
+    
+    state["text_results"] = results
+    
+    # Retrieval confidence is already set by the verification agent based on results,
+    # but we can set a preliminary one here just in case.
     if results:
-        results = _scorer.compute(results)
-        results.sort(key=lambda r: r.scores.confidence_score, reverse=True)
-        results = _scorer.apply_threshold(results, threshold=settings.CONFIDENCE_THRESHOLD)
-        results = results[:top_k]
-        state["retrieval_confidence"] = results[0].scores.confidence_score if results else 0.0
+        state["retrieval_confidence"] = results[0].scores.confidence_score
     else:
         state["retrieval_confidence"] = 0.0
         
-    state["text_results"] = results
     logger.info(f"Text Retrieval Node found {len(results)} chunks.")
     return state
 
 
-# Conditional Routing Functions
+# ── CONDITIONAL ROUTING ──────────────────────────────────────────────────────
+
 def route_from_router(state: AgentState) -> str:
     """Route after intent classification."""
     next_agent = state.get("next_agent")
@@ -99,22 +116,50 @@ def route_from_text(state: AgentState) -> str:
     return "verification"
 
 def route_from_verification(state: AgentState) -> str:
-    """Route after retrieval verification."""
+    """
+    Route after retrieval verification.
+    Emergency fast-path: emergency queries bypass retry loops to ensure speed.
+    """
     passed = state.get("verification_passed", True)
+    should_refuse = state.get("should_refuse", False)
+    intent = state.get("intent")
+    
+    # Hard refusal -> go straight to synthesis for the refusal message
+    if should_refuse:
+        return "synthesizer"
+        
     if passed:
         return "synthesizer"
     
+    # Emergency bypass: proceed directly to synthesis even if verification failed (low confidence)
+    if intent == QueryIntent.EMERGENCY:
+        logger.info("Emergency fast-path: bypassing retrieval retries.")
+        return "synthesizer"
+        
     if state.get("retry_count", 0) < state.get("max_retries", 2):
         return "text_retrieval"
+    
     return "synthesizer"
 
 def route_from_quality(state: AgentState) -> str:
-    """Route after quality review."""
+    """
+    Route after quality review.
+    Emergency fast-path: emergency queries bypass quality retries to ensure speed.
+    """
     passed = state.get("quality_passed", True)
+    intent = state.get("intent")
+    
     if passed:
         return END
         
+    # Emergency bypass
+    if intent == QueryIntent.EMERGENCY:
+        logger.info("Emergency fast-path: bypassing quality retries.")
+        return END
+        
     if state.get("retry_count", 0) < state.get("max_retries", 2):
+        # We loop all the way back to verification to see if we should re-retrieve
+        # Setting retry_count increments it, so verification will route to text_retrieval
         return "verification"
         
     return END

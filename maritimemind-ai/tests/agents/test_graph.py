@@ -2,10 +2,8 @@ import pytest
 from unittest.mock import patch, MagicMock
 
 # Mock the heavy dependencies before importing the graph
-with patch("app.orchestration.graph.VectorStoreService"), \
-     patch("app.orchestration.graph.BM25IndexService"), \
-     patch("app.orchestration.graph.TextEmbeddingService"), \
-     patch("app.orchestration.graph.HybridSearchEngine"):
+with patch("app.orchestration.graph.RetrievalController"), \
+     patch("app.orchestration.graph.LLMService"):
     from app.orchestration.graph import create_graph, app_graph
 
 def test_graph_compiles():

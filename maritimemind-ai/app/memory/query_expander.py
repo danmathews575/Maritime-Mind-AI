@@ -1,36 +1,40 @@
 import re
-import logging
 from typing import List
 from app.models.schemas import ChatMessage
+from app.utils.logger import setup_logger
 
-logger = logging.getLogger(__name__)
+logger = setup_logger("maritimemind.memory.query_expander")
 
 class QueryExpander:
-    """Expands queries using conversation context to resolve references."""
+    """
+    Expands queries using conversation context to resolve references.
+    Hardened heuristic implementation:
+    - Replaces vague pronouns with exact nouns from previous turns rather
+      than naively appending "(Context: ...)".
+    - Avoids calling LLMs to maintain low latency for the default path.
+    """
     
     def __init__(self):
-        # Reference words that indicate the need for context
-        self.reference_patterns = [
-            r"\b(that)\b",
-            r"\b(it)\b",
-            r"\b(this)\b",
-            r"\b(those)\b",
-            r"\b(these)\b",
-            r"\b(same)\b",
-            r"\b(he)\b",
-            r"\b(she)\b",
-            r"\b(they)\b"
-        ]
-        self.ref_regex = re.compile("|".join(self.reference_patterns), re.IGNORECASE)
+        # Pronouns/references indicating need for context
+        self.ref_regex = re.compile(
+            r"\b(that|it|this|those|these|same|he|she|they)\b", 
+            re.IGNORECASE
+        )
+        
+        # Simple stop words to strip when extracting subjects
+        self.stop_words = {
+            "what", "is", "the", "a", "an", "how", "to", "do", "i", 
+            "can", "you", "tell", "me", "about", "show", "explain"
+        }
 
     def expand(self, query: str, history: List[ChatMessage]) -> str:
         """
         Expand the query if it contains reference words and history is available.
+        Uses heuristic noun extraction from history to replace pronouns.
         """
         if not history:
             return query
             
-        # Check if query contains references
         needs_expansion = bool(self.ref_regex.search(query))
         
         # Simple heuristic: if it's very short, it might be a fragment
@@ -49,9 +53,41 @@ class QueryExpander:
                 last_user_query = msg.content
                 break
                 
-        if last_user_query:
-            expanded = f"{query} (Context: {last_user_query})"
-            logger.info(f"Expanded query: '{expanded}'")
+        if not last_user_query:
+            return query
+
+        # Heuristic entity extraction: grab the most "substantial" words from last query
+        words = last_user_query.split()
+        entities = []
+        
+        # Look for quoted phrases or capitalized terms (often subsystems/parts)
+        quoted = re.findall(r'"([^"]*)"', last_user_query)
+        if quoted:
+            entities.extend(quoted)
+            
+        # Or just grab longer, non-stop words (likely nouns/subsystems)
+        if not entities:
+            candidates = [
+                w.strip(".,?!\"'") for w in words 
+                if w.lower() not in self.stop_words and len(w) > 4
+            ]
+            if candidates:
+                # Take the last few substantive words (usually the object of the sentence)
+                entities.append(" ".join(candidates[-2:]))
+                
+        if entities:
+            # We found a likely subject from the previous turn
+            subject = entities[-1]
+            
+            # Simple replacement: "how do I fix it" -> "how do I fix [subject]"
+            # This is cleaner than appending context and doesn't confuse the embedder
+            expanded = self.ref_regex.sub(subject, query, count=1)
+            
+            # If no replacement happened (e.g., it was just a short fragment without pronouns)
+            if expanded == query:
+                expanded = f"{query} {subject}"
+                
+            logger.info(f"Query expanded heuristically: '{query}' -> '{expanded}'")
             return expanded
             
         return query

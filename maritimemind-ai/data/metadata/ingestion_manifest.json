@@ -1,133 +1,133 @@
 {
   "37437177-Pumps": {
     "status": "COMPLETED",
-    "processed_date": "2026-05-25T18:10:06.567280+00:00",
+    "processed_date": "2026-05-29T09:19:38.441691+00:00",
     "chunk_count": 0,
     "image_count": 11,
     "errors": []
   },
   "ship cooling system": {
     "status": "COMPLETED",
-    "processed_date": "2026-05-25T18:16:53.183513+00:00",
+    "processed_date": "2026-05-29T09:31:19.333092+00:00",
     "chunk_count": 86,
-    "image_count": 4,
+    "image_count": 3,
     "errors": []
   },
   "ship fuel system": {
     "status": "COMPLETED",
-    "processed_date": "2026-05-25T18:17:08.776762+00:00",
+    "processed_date": "2026-05-29T09:31:32.992454+00:00",
     "chunk_count": 65,
     "image_count": 1,
     "errors": []
   },
   "EngineRoomFires_TSC": {
     "status": "COMPLETED",
-    "processed_date": "2026-05-25T18:20:32.441282+00:00",
-    "chunk_count": 17,
-    "image_count": 18,
+    "processed_date": "2026-05-29T09:37:08.653720+00:00",
+    "chunk_count": 18,
+    "image_count": 17,
     "errors": []
   },
   "Loss-Prevention-Article-Ballast-Operation-and-Maintenance-Practice-07-2023": {
     "status": "COMPLETED",
-    "processed_date": "2026-05-25T18:09:28.685415+00:00",
+    "processed_date": "2026-05-29T09:18:52.346167+00:00",
     "chunk_count": 17,
     "image_count": 5,
     "errors": []
   },
   "radar manual": {
     "status": "COMPLETED",
-    "processed_date": "2026-05-25T18:20:09.721625+00:00",
-    "chunk_count": 429,
-    "image_count": 307,
+    "processed_date": "2026-05-29T09:36:36.646498+00:00",
+    "chunk_count": 434,
+    "image_count": 304,
     "errors": []
   },
   "736871061-Wartsila-26-Maintenance-Manual": {
     "status": "COMPLETED",
-    "processed_date": "2026-05-25T18:10:53.189360+00:00",
+    "processed_date": "2026-05-29T09:20:15.976679+00:00",
     "chunk_count": 200,
-    "image_count": 4,
+    "image_count": 3,
     "errors": []
   },
   "2019Intertanko_Anchoring_guidelines_a_risk-based-approach": {
     "status": "COMPLETED",
-    "processed_date": "2026-05-25T18:09:16.503129+00:00",
-    "chunk_count": 163,
-    "image_count": 5,
+    "processed_date": "2026-05-29T09:17:47.110036+00:00",
+    "chunk_count": 164,
+    "image_count": 4,
     "errors": []
   },
   "cargo handling": {
     "status": "COMPLETED",
-    "processed_date": "2026-05-25T18:09:23.044214+00:00",
-    "chunk_count": 17,
+    "processed_date": "2026-05-29T09:18:46.975123+00:00",
+    "chunk_count": 23,
     "image_count": 6,
     "errors": []
   },
   "POTLLMooringManual": {
     "status": "COMPLETED",
-    "processed_date": "2026-05-25T18:10:02.826689+00:00",
-    "chunk_count": 146,
-    "image_count": 62,
+    "processed_date": "2026-05-29T09:19:29.153461+00:00",
+    "chunk_count": 147,
+    "image_count": 61,
     "errors": []
   },
   "marine diesel engine manual 1": {
     "status": "COMPLETED",
-    "processed_date": "2026-05-25T18:15:35.270424+00:00",
+    "processed_date": "2026-05-29T09:29:32.202500+00:00",
     "chunk_count": 486,
     "image_count": 60,
     "errors": []
   },
   "marine diesel engine manual 2": {
     "status": "COMPLETED",
-    "processed_date": "2026-05-25T18:16:36.811068+00:00",
-    "chunk_count": 241,
-    "image_count": 69,
+    "processed_date": "2026-05-29T09:30:52.322284+00:00",
+    "chunk_count": 242,
+    "image_count": 25,
     "errors": []
   },
   "25-ME-tal_000": {
     "status": "COMPLETED",
-    "processed_date": "2026-05-25T18:17:11.258469+00:00",
+    "processed_date": "2026-05-29T09:31:35.321414+00:00",
     "chunk_count": 2,
     "image_count": 4,
     "errors": []
   },
   "ecdis_hb": {
     "status": "COMPLETED",
-    "processed_date": "2026-05-25T18:17:41.380845+00:00",
+    "processed_date": "2026-05-29T09:32:05.705072+00:00",
     "chunk_count": 65,
-    "image_count": 34,
+    "image_count": 29,
     "errors": []
   },
   "Ship_Evacuation-Guidelines_Simulation_Validation_a": {
     "status": "COMPLETED",
-    "processed_date": "2026-05-25T18:20:36.162867+00:00",
+    "processed_date": "2026-05-29T09:44:10.227832+00:00",
     "chunk_count": 20,
     "image_count": 2,
     "errors": []
   },
   "USCG-MSM-VOL-III-CHAP-16": {
     "status": "COMPLETED",
-    "processed_date": "2026-05-25T18:20:37.481863+00:00",
+    "processed_date": "2026-05-29T09:44:11.781398+00:00",
     "chunk_count": 1,
     "image_count": 0,
     "errors": []
   },
   "SHIP CON 5 STUDENT SECTIONS": {
     "status": "COMPLETED",
-    "processed_date": "2026-05-29T06:27:50.258102+00:00",
+    "processed_date": "2026-05-29T09:19:35.341904+00:00",
     "chunk_count": 0,
     "image_count": 23,
     "errors": []
   },
   "Construction - Stem": {
     "status": "COMPLETED",
-    "processed_date": "2026-05-29T06:25:55.507197+00:00",
+    "processed_date": "2026-05-29T09:24:29.766664+00:00",
     "chunk_count": 20,
     "image_count": 21,
     "errors": []
   },
   "MARPOL Anx I - OPA - VRP - VGP": {
     "status": "COMPLETED",
-    "processed_date": "2026-05-29T06:35:18.709589+00:00",
+    "processed_date": "2026-05-29T09:44:05.825490+00:00",
     "chunk_count": 19,
     "image_count": 20,
     "errors": []

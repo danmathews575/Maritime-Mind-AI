@@ -9,6 +9,7 @@ Produces 384-dim vectors by default (all-MiniLM-L6-v2).
 from __future__ import annotations
 
 from typing import List, Optional
+import functools
 
 from tqdm import tqdm
 
@@ -80,6 +81,7 @@ class TextEmbeddingService:
     # Public API
     # ------------------------------------------------------------------
 
+    @functools.lru_cache(maxsize=1024)
     def embed_text(self, text: str) -> List[float]:
         """
         Embed a single text string.
@@ -130,6 +132,7 @@ class TextEmbeddingService:
         logger.info(f"Text embedding complete: {len(result)} vectors of dim {len(result[0])}")
         return result
 
+    @functools.lru_cache(maxsize=1024)
     def embed_query(self, query: str) -> List[float]:
         """
         Embed a search query. Alias for embed_text, semantically distinct
@@ -144,4 +147,9 @@ class TextEmbeddingService:
         Returns:
             Embedding vector as List[float].
         """
+        # BAAI/bge models perform best when queries (but not documents) 
+        # are prefixed with this instruction
+        if "bge" in self._model_name.lower():
+            query = f"Represent this sentence for searching relevant passages: {query}"
+            
         return self.embed_text(query)

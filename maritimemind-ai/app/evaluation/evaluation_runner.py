@@ -47,13 +47,28 @@ class EvaluationRunner:
         logger.info("Evaluation complete.")
         return report
 
-    def _evaluate_query(self, query: BenchmarkQuery) -> QueryEvalResult:
+    def _evaluate_query(self, query: BenchmarkQuery, end_to_end: bool = True) -> QueryEvalResult:
         logger.debug(f"Evaluating query: {query.query_id} - '{query.query_text}'")
         
-        # We don't override the classifier, we just let the controller do its thing
-        # In a real rigorous test, we might force the intent or check if it matches query.intent
         try:
-            results = self.controller.retrieve(query.query_text, top_k=5)
+            # End-to-end evaluation runs the full graph to evaluate synthesis faithfulness
+            if end_to_end:
+                from app.orchestration.graph import run_agent_workflow
+                state = run_agent_workflow(query.query_text)
+                results = state.get("text_results", [])
+                response_text = state.get("response_text", "")
+                quality_passed = state.get("quality_passed", False)
+                quality_notes = state.get("quality_notes", "")
+                
+                # We can store the quality reviewer findings in the grounding_metrics
+                grounding_metrics = {
+                    "quality_passed": quality_passed,
+                    "quality_notes": quality_notes,
+                    "response_length": len(response_text)
+                }
+            else:
+                results = self.controller.retrieve(query.query_text, top_k=5)
+                grounding_metrics = {}
             
             retrieved_chunk_ids = [res.chunk.chunk_id for res in results]
             expected_chunks = query.expected_chunk_ids
@@ -86,7 +101,7 @@ class EvaluationRunner:
                 intent=query.intent,
                 text_metrics=text_metrics,
                 image_metrics=image_metrics,
-                grounding_metrics={}, # Will compute globally
+                grounding_metrics=grounding_metrics,
                 errors=[]
             )
             

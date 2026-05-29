@@ -9,10 +9,14 @@ def _create_result(cid: str, conf: float):
     scores = RetrievalScores(confidence_score=conf)
     return RetrievalResult(chunk=chunk, scores=scores)
 
+from app.retrieval.query_classifier import ClassificationResult
+
+@patch("app.retrieval.controller.ImageRetrievalService")
+@patch("app.retrieval.controller.ImageEmbeddingService")
 @patch("app.retrieval.controller.VectorStoreService")
 @patch("app.retrieval.controller.BM25IndexService")
 @patch("app.retrieval.controller.TextEmbeddingService")
-def test_retrieve_pipeline(mock_emb, mock_bm25, mock_vs):
+def test_retrieve_pipeline(mock_emb, mock_bm25, mock_vs, mock_img_emb, mock_img_ret):
     # Setup mocks
     mock_bm25_instance = Mock()
     mock_bm25_instance.is_built = True
@@ -22,7 +26,7 @@ def test_retrieve_pipeline(mock_emb, mock_bm25, mock_vs):
     
     # Mock the internal components
     controller.classifier = Mock()
-    controller.classifier.classify.return_value = QueryIntent.EXPLANATION
+    controller.classifier.classify.return_value = ClassificationResult(intent=QueryIntent.EXPLANATION)
     
     controller.hybrid_search = Mock()
     controller.hybrid_search.search.return_value = [
@@ -37,6 +41,17 @@ def test_retrieve_pipeline(mock_emb, mock_bm25, mock_vs):
         _create_result("chunk1", 0.0),
         _create_result("chunk3", 0.0)
     ]
+
+    controller.context_expander = Mock()
+    controller.context_expander.expand_context.return_value = [
+        _create_result("chunk2", 0.0),
+        _create_result("chunk1", 0.0),
+        _create_result("chunk3", 0.0)
+    ]
+    controller.context_expander.distribute_images.return_value = (controller.context_expander.expand_context.return_value, [])
+    
+    controller.image_retrieval = Mock()
+    controller.image_retrieval.search.return_value = []
     
     controller.scorer = Mock()
     scored_results = [

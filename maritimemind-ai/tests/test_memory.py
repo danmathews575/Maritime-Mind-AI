@@ -41,7 +41,7 @@ def test_query_expansion():
     # Should expand because of 'it'
     expanded = expander.expand("Show me a diagram of it", history)
     assert expanded != "Show me a diagram of it"
-    assert "main engine cooling pump" in expanded
+    assert "cooling pump" in expanded
     
     # Should not expand
     not_expanded = expander.expand("What is the ballast system?", history)

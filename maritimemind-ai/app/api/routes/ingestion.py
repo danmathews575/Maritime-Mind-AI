@@ -10,7 +10,8 @@ DELETE /api/v1/ingest/{name}   — Remove a manual entry from the manifest
 import logging
 from pathlib import Path
 
-from fastapi import APIRouter, HTTPException, BackgroundTasks
+from fastapi import APIRouter, HTTPException, BackgroundTasks, Depends
+from app.api.routes.auth import get_current_user
 
 from app.api.schemas import (
     IngestRequest,
@@ -51,6 +52,7 @@ def _run_ingestion(pdf_path: str, force: bool) -> IngestResponse:
 async def ingest_pdf(
     request: IngestRequest,
     background_tasks: BackgroundTasks,
+    user: dict = Depends(get_current_user)
 ) -> IngestResponse:
     """
     Triggers ingestion for a single PDF file or all PDFs in a directory.
@@ -88,7 +90,7 @@ async def ingest_pdf(
 
 @router.get("/status", response_model=IngestStatusResponse,
             summary="Get ingestion manifest status")
-async def get_ingest_status() -> IngestStatusResponse:
+async def get_ingest_status(user: dict = Depends(get_current_user)) -> IngestStatusResponse:
     """Returns the full ingestion manifest — which manuals are indexed and their counts."""
     manifest = IngestionManifest()
     entries = manifest.all_entries()
@@ -108,7 +110,7 @@ async def get_ingest_status() -> IngestStatusResponse:
 
 @router.delete("/{manual_name}", status_code=204,
                summary="Remove a manual from the ingestion manifest")
-async def delete_manual(manual_name: str) -> None:
+async def delete_manual(manual_name: str, user: dict = Depends(get_current_user)) -> None:
     """
     Removes a manual entry from the manifest.
     Does NOT delete the actual ChromaDB vectors or BM25 index (re-ingest to update).

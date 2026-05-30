@@ -139,7 +139,7 @@ class PdfParserService:
 
         # Fallback Vision OCR for scanned pages (Phase 12)
         if not parsed.text_blocks and settings.OCR_ENABLED:
-            logger.info(f"Page {page_number} has no text blocks. Running Vision OCR fallback...")
+            logger.info(f"Page {page_number} has no text blocks. Checking for blank page before Vision OCR...")
             try:
                 from app.services.vision_ocr import NvidiaVisionService
                 if not hasattr(self, '_vision_service'):
@@ -148,19 +148,28 @@ class PdfParserService:
                 # Render page to image (150 DPI is usually sufficient for OCR)
                 pix = fitz_page.get_pixmap(dpi=150)
                 img_data = pix.tobytes("jpeg")
-                b64_img = base64.b64encode(img_data).decode("utf-8")
                 
-                ocr_text = self._vision_service.extract_text_from_image(b64_img)
-                if ocr_text:
-                    rect = fitz_page.rect
-                    tb = TextBlock(
-                        text=ocr_text,
-                        font_size=12.0,
-                        font_flags=0,
-                        bbox=(rect.x0, rect.y0, rect.x1, rect.y1),
-                        page_number=page_number
-                    )
-                    parsed.text_blocks.append(tb)
+                # Fast Blank Page Detection (StdDev check)
+                import io
+                from PIL import Image, ImageStat
+                pil_img = Image.open(io.BytesIO(img_data)).convert('L')
+                stat = ImageStat.Stat(pil_img)
+                if stat.stddev[0] < 15.0:
+                    logger.info(f"Page {page_number} appears blank (stddev={stat.stddev[0]:.2f}). Skipping OCR.")
+                else:
+                    b64_img = base64.b64encode(img_data).decode("utf-8")
+                    
+                    ocr_text = self._vision_service.extract_text_from_image(b64_img)
+                    if ocr_text:
+                        rect = fitz_page.rect
+                        tb = TextBlock(
+                            text=ocr_text,
+                            font_size=12.0,
+                            font_flags=0,
+                            bbox=(rect.x0, rect.y0, rect.x1, rect.y1),
+                            page_number=page_number
+                        )
+                        parsed.text_blocks.append(tb)
             except Exception as e:
                 logger.warning(f"Vision OCR fallback failed for page {page_number}: {e}")
 

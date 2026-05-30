@@ -231,14 +231,28 @@ def create_graph() -> StateGraph:
     
     return workflow.compile()
 
-# Instantiate the compiled graph
-app_graph = create_graph()
+# ── Lazy Graph Singleton ──────────────────────────────────────────────────────
+# Do NOT instantiate at module level — this loads all ML models (LLM, embedder,
+# CLIP, reranker) and causes slow imports, slow tests, and slow restarts.
+# The graph is built once on the first call to run_agent_workflow().
+
+_app_graph = None
+
+def _get_graph():
+    """Lazy singleton: builds and caches the compiled LangGraph."""
+    global _app_graph
+    if _app_graph is None:
+        logger.info("Building LangGraph workflow (first call)...")
+        _app_graph = create_graph()
+        logger.info("LangGraph workflow ready.")
+    return _app_graph
+
 
 def run_agent_workflow(query: str, history: list = None, provider: str = None) -> AgentState:
     """Convenience function to execute the graph."""
     if history is None:
         history = []
-        
+
     initial_state = {
         "query": query,
         "conversation_history": history,
@@ -246,5 +260,5 @@ def run_agent_workflow(query: str, history: list = None, provider: str = None) -
         "retry_count": 0,
         "max_retries": 2
     }
-    
-    return app_graph.invoke(initial_state)
+
+    return _get_graph().invoke(initial_state)

@@ -31,7 +31,8 @@ class NvidiaVisionService:
                     }
                 ],
                 max_tokens=2048,
-                temperature=0.0
+                temperature=0.0,
+                timeout=30.0
             )
             text = response.choices[0].message.content.strip()
             return text

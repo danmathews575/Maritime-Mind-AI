@@ -1,6 +1,5 @@
 # ============================================================
-# MaritimeMind AI — Pinned Requirements (Phase 10 — Full Stack)
-# All versions pinned for fast, reproducible pip install.
+# MaritimeMind AI — Requirements (v0.9.2 — Demo Polish)
 # ============================================================
 
 # Web & API Framework
@@ -22,7 +21,11 @@ langgraph-sdk==0.1.74
 langchain-google-genai==2.0.1
 langchain-openai==0.2.1
 # Vector Database & Retrieval
-chromadb==0.6.3
+PyJWT==2.10.1
+passlib==1.7.4
+bcrypt==4.2.1
+slowapi==0.1.9
+qdrant-client==1.8.0
 sentence-transformers==4.1.0
 rank-bm25==0.2.2
 
@@ -31,15 +34,21 @@ pymupdf==1.25.5
 pdfplumber==0.11.6
 pillow==11.2.1
 open-clip-torch==2.32.0
+easyocr==1.7.2        # Phase 3: OCR on engineering diagrams
 
-# UI
-streamlit==1.45.1
+# Chunking & Token Counting
+tiktoken==0.7.0       # Accurate LLM token counting (replaces whitespace split)
 
 # Utilities & Data Science
 tqdm==4.67.1
 numpy==1.26.4
 pandas==2.2.3
+redis==5.0.3
 
-# Testing
+# Observability
+arize-phoenix
+openinference-instrumentation-langchain
+
+# Testing & Evaluation
 pytest==8.3.5
 pytest-asyncio==0.25.3

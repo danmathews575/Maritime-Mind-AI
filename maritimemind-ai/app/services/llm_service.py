@@ -54,9 +54,24 @@ class LLMService:
                 ))
             logger.info(f"Initialized OpenAI pool with {len(keys)} keys")
 
+        # 4. Initialize NVIDIA (if keys exist)
+        nvidia_keys_str = getattr(self.settings, "NVIDIA_API_KEY", "")
+        if nvidia_keys_str:
+            from langchain_openai import ChatOpenAI
+            keys = [k.strip() for k in nvidia_keys_str.split(",") if k.strip()]
+            self.pools["nvidia"] = []
+            for key in keys:
+                self.pools["nvidia"].append(ChatOpenAI(
+                    model="meta/llama-3.1-70b-instruct",
+                    api_key=key,
+                    base_url="https://integrate.api.nvidia.com/v1",
+                    temperature=0.0
+                ))
+            logger.info(f"Initialized NVIDIA pool with {len(keys)} keys")
+
     def _get_llm(self, provider: str):
         """Randomly selects an LLM from the specified provider pool."""
-        provider = provider.lower() if provider else "ollama"
+        provider = provider.lower() if provider else self.settings.LLM_PROVIDER
         if provider not in self.pools or not self.pools[provider]:
             logger.warning(f"Provider '{provider}' not available. Falling back to ollama.")
             provider = "ollama"

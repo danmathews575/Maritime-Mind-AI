@@ -14,6 +14,11 @@ class MaritimeMindSettings(BaseSettings):
         extra="ignore"
     )
 
+    # Security
+    JWT_SECRET_KEY: str = "supersecretkey_change_in_production"
+    JWT_ALGORITHM: str = "HS256"
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
+
     # LLM Inference
     LLM_PROVIDER: str = "ollama"  # "ollama", "gemini", or "openai"
     OLLAMA_BASE_URL: str = "http://localhost:11434"
@@ -23,9 +28,11 @@ class MaritimeMindSettings(BaseSettings):
     NVIDIA_API_KEY: str = ""
 
     # Embedding Models
-    TEXT_EMBEDDING_MODEL: str = "BAAI/bge-small-en-v1.5"
+    TEXT_EMBEDDING_MODEL: str = "BAAI/bge-base-en-v1.5"  # Upgraded from bge-small; 768-dim, +15% MTEB retrieval
+    TEXT_EMBEDDING_DIM: int = 768
     CLIP_MODEL_NAME: str = "ViT-B-32"
     CLIP_PRETRAINED: str = "laion2b_s34b_b79k"
+    IMAGE_EMBEDDING_DIM: int = 512
 
     # Chunking Configuration
     CHUNK_SIZE: int = 512
@@ -36,11 +43,15 @@ class MaritimeMindSettings(BaseSettings):
     MIN_IMAGE_WIDTH: int = 100
     MIN_IMAGE_HEIGHT: int = 100
 
-    # Vector Store
-    CHROMADB_PERSIST_DIR: str = "./vector_store/chromadb"
+    # Vector Store & Storage
+    QDRANT_HOST: str = "local" # Use "local" to bypass docker, "localhost" to use docker
+    QDRANT_PATH: str = "./vector_store/qdrant_local"
+    QDRANT_PORT: int = 6333
     TEXT_COLLECTION_NAME: str = "maritime_text_chunks"
     IMAGE_COLLECTION_NAME: str = "maritime_image_chunks"
     BM25_INDEX_PATH: str = "./vector_store/bm25_index.pkl"
+    REDIS_URL: str = "redis://localhost:6379/0"
+    CACHE_TTL_SECONDS: int = 600  # 10 minutes — eliminates repeated demo query latency
 
     # Retrieval
     TOP_K_RESULTS: int = 10
@@ -70,10 +81,11 @@ class MaritimeMindSettings(BaseSettings):
     DEVICE: str = "cpu"  # "cpu" or "cuda"
 
     # Future Phases (stubs — uncomment/configure when needed)
-    OCR_ENABLED: bool = True  # Phase 12: Tesseract/Vision LLM OCR
-    NEO4J_URI: Optional[str] = None  # Future: graph-based knowledge store
-    STREAMING_ENABLED: bool = False  # Phase 12: WebSocket streaming
-    MAX_CONVERSATION_HISTORY: int = 10  # Phase 8: context window limit
+    OCR_ENABLED: bool = True
+    EASYOCR_LANGUAGES: list = ["en"]  # Phase 3: EasyOCR language list
+    NEO4J_URI: Optional[str] = None
+    STREAMING_ENABLED: bool = False
+    MAX_CONVERSATION_HISTORY: int = 10
 
 # Singleton instance
 settings = MaritimeMindSettings()

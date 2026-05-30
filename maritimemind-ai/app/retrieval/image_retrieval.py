@@ -92,6 +92,25 @@ class ImageRetrievalService:
 
         associated_images = self.vs.get_images_by_ids(list(associated_image_ids))
 
+        # Path 3: Keyword payload search (OCR/Caption)
+        query_lower = query.lower()
+        search_terms = []
+        for term in COMPOUND_MARITIME_TERMS:
+            if term in query_lower:
+                search_terms.append(term)
+        if not search_terms:
+            words = [w for w in query_lower.split() if w not in CLIP_STRIP_WORDS and len(w) > 4]
+            if words:
+                search_terms.append(" ".join(words))
+
+        keyword_image_ids = set()
+        keyword_images = []
+        for term in search_terms:
+            k_hits = self.vs.search_images_by_keyword(term, limit=top_k)
+            keyword_images.extend(k_hits)
+            for img in k_hits:
+                keyword_image_ids.add(img.image_id)
+
         # Merge results and deduplicate
         merged_metadata: Dict[str, ImageMetadata] = {}
         clip_scores: Dict[str, float] = {}
@@ -108,6 +127,8 @@ class ImageRetrievalService:
             merged_metadata[img.image_id] = img
         for img in associated_images:
             merged_metadata[img.image_id] = img
+        for img in keyword_images:
+            merged_metadata[img.image_id] = img
 
         # Score and build results
         retrieved_images: List[RetrievedImage] = []
@@ -116,11 +137,14 @@ class ImageRetrievalService:
             reasons = []
             c_score = clip_scores.get(img_id, 0.0)
             a_score = chunk_confidence_map.get(img_id, 0.0)
+            k_score = 0.60 if img_id in keyword_image_ids else 0.0
 
             if img_id in clip_scores:
                 reasons.append("Path 1: CLIP Semantic Match")
             if img_id in associated_image_ids:
                 reasons.append("Path 2: Associated with retrieved text")
+            if img_id in keyword_image_ids:
+                reasons.append("Path 3: Keyword Match (OCR/Caption)")
 
             # Diagram Type Weighting
             diagram_weight = self._get_diagram_weight(img_meta)
@@ -140,14 +164,13 @@ class ImageRetrievalService:
                 reasons.append(f"Page Proximity Boost (+{proximity_boost:.2f})")
 
             # ── Rebalanced Scoring Formula ────────────────────────────────
-            # Text-association weight INCREASED (0.30 → 0.40) because
-            # association traces back to text retrieval which has better
-            # domain grounding than CLIP for technical diagrams.
-            # CLIP weight REDUCED (0.45 → 0.30) because ViT-B-32 was
-            # trained on natural images, not engineering schematics.
+            # Keyword and Text-association weights are dominant because
+            # technical terminology inside diagrams is highly diagnostic.
+            # CLIP weight is lower since ViT-B-32 was trained on natural images.
             raw_score = (
-                (0.30 * c_score)
-                + (0.40 * a_score)
+                (0.25 * c_score)
+                + (0.35 * a_score)
+                + (0.40 * k_score)
                 + proximity_boost
                 + (0.10 * img_meta.diagram_confidence)
                 + subsystem_boost

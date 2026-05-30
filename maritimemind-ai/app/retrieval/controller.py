@@ -76,7 +76,6 @@ class RetrievalController:
         filters_tuple = tuple(sorted(filters.items())) if filters else None
         return self._cached_retrieve(query, top_k, filters_tuple)
 
-    @functools.lru_cache(maxsize=128)
     def _cached_retrieve(self, query: str, top_k: int, filters_tuple: tuple) -> List[RetrievalResult]:
         start_time = time.perf_counter()
         

@@ -8,6 +8,13 @@ from __future__ import annotations
 import re
 from typing import List, Optional, Tuple
 
+try:
+    import tiktoken
+    _tokenizer = tiktoken.get_encoding("cl100k_base")
+    _USE_TIKTOKEN = True
+except ImportError:
+    _USE_TIKTOKEN = False
+
 from app.configs.config import settings
 from app.models.schemas import TextChunk, QueryIntent
 from app.services.pdf_parser import ParsedDocument, ParsedPage, TextBlock
@@ -210,21 +217,29 @@ class SemanticChunkerService:
             return [text] if len(text) >= self._min_length else []
         sentence_end = re.compile(r'(?<=[.!?])\s+')
         sentences = sentence_end.split(text)
-        segments, current_tokens = [], []
+        segments, current_sentences = [], []
         current_len = 0
         for sentence in sentences:
-            s_tokens = sentence.split()
-            s_len = len(s_tokens)
-            if current_len + s_len > self._chunk_size and current_tokens:
-                segments.append(" ".join(current_tokens))
-                overlap_tokens = current_tokens[-self._overlap:]
-                current_tokens = overlap_tokens + s_tokens
-                current_len = len(current_tokens)
+            s_len = self._token_count(sentence)
+            if current_len + s_len > self._chunk_size and current_sentences:
+                segments.append(" ".join(current_sentences))
+                # Overlap: keep last N tokens worth of sentences
+                overlap_sentences = []
+                overlap_len = 0
+                for sent in reversed(current_sentences):
+                    sent_tok = self._token_count(sent)
+                    if overlap_len + sent_tok <= self._overlap:
+                        overlap_sentences.insert(0, sent)
+                        overlap_len += sent_tok
+                    else:
+                        break
+                current_sentences = overlap_sentences + [sentence]
+                current_len = self._token_count(" ".join(current_sentences))
             else:
-                current_tokens.extend(s_tokens)
+                current_sentences.append(sentence)
                 current_len += s_len
-        if current_tokens:
-            remainder = " ".join(current_tokens)
+        if current_sentences:
+            remainder = " ".join(current_sentences)
             if len(remainder) >= self._min_length:
                 segments.append(remainder)
         return segments
@@ -315,9 +330,18 @@ class SemanticChunkerService:
 
     @staticmethod
     def _token_count(text: str) -> int:
+        """Accurate token count using tiktoken (cl100k_base encoding).
+        Falls back to whitespace split if tiktoken is not installed.
+        """
+        if _USE_TIKTOKEN:
+            return len(_tokenizer.encode(text))
         return len(text.split())
 
     @staticmethod
     def _last_n_tokens(text: str, n: int) -> str:
+        """Return the last n tokens of text. Uses tiktoken when available."""
+        if _USE_TIKTOKEN:
+            tokens = _tokenizer.encode(text)
+            return _tokenizer.decode(tokens[-n:]) if len(tokens) > n else text
         words = text.split()
         return " ".join(words[-n:]) if len(words) > n else text

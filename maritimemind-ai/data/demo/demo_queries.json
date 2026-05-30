@@ -1,0 +1,67 @@
+[
+  {
+    "query": "What is the procedure for starting the main engine?",
+    "category": "PROCEDURE",
+    "expected_intent": "procedure"
+  },
+  {
+    "query": "How do I perform a main engine slow turning before starting?",
+    "category": "PROCEDURE",
+    "expected_intent": "procedure"
+  },
+  {
+    "query": "List the steps for auxiliary engine startup",
+    "category": "PROCEDURE",
+    "expected_intent": "procedure"
+  },
+  {
+    "query": "Engine room flooding \u2014 immediate actions",
+    "category": "EMERGENCY",
+    "expected_intent": "emergency"
+  },
+  {
+    "query": "Main engine fire emergency procedure",
+    "category": "EMERGENCY",
+    "expected_intent": "emergency"
+  },
+  {
+    "query": "High lube oil temperature alarm on main engine \u2014 root cause",
+    "category": "TROUBLESHOOTING",
+    "expected_intent": "troubleshooting"
+  },
+  {
+    "query": "Low jacket cooling water pressure \u2014 causes and remedies",
+    "category": "TROUBLESHOOTING",
+    "expected_intent": "troubleshooting"
+  },
+  {
+    "query": "Show me the cooling water system schematic",
+    "category": "DIAGRAM",
+    "expected_intent": "diagram_request"
+  },
+  {
+    "query": "Main engine fuel oil system diagram",
+    "category": "DIAGRAM",
+    "expected_intent": "diagram_request"
+  },
+  {
+    "query": "What is MARPOL Annex VI NOx Tier III limit?",
+    "category": "SOP",
+    "expected_intent": "sop_lookup"
+  },
+  {
+    "query": "SOLAS Chapter II-2 fire detection requirements",
+    "category": "SOP",
+    "expected_intent": "sop_lookup"
+  },
+  {
+    "query": "Explain the principle of operation of a turbocharger",
+    "category": "EXPLANATION",
+    "expected_intent": "explanation"
+  },
+  {
+    "query": "What is the purpose of the crosshead in a 2-stroke marine diesel engine?",
+    "category": "EXPLANATION",
+    "expected_intent": "explanation"
+  }
+]

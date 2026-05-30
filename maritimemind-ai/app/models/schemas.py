@@ -70,6 +70,7 @@ class ImageMetadata(BaseModel):
     ocr_text: str = ""
     ocr_quality: float = 1.0
     diagram_confidence: float = 1.0
+    diagram_type: str = "UNKNOWN"
     
     embedding_model: str
     created_at: datetime = Field(default_factory=_utcnow)

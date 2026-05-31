@@ -14,6 +14,8 @@ class AgentState(TypedDict):
     intent: Optional[QueryIntent]
     retrieval_strategy: str  # e.g., "text_only", "image_priority", "multimodal", "emergency"
     llm_provider: Optional[str]
+    filters: Optional[Dict[str, Any]]
+    detected_language: Optional[str]
     
     # Retrieval
     text_results: List[RetrievalResult]

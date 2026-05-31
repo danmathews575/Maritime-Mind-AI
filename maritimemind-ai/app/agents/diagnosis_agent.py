@@ -33,7 +33,7 @@ def diagnosis_agent(state: AgentState) -> AgentState:
             # For now, we will handle it by providing a general troubleshooting response using standard retrieval.
             # We signal the graph to just proceed to synthesis (bypass structured diagnosis).
             # We don't have a direct edge to synthesis from here yet, but we can set a flag or just answer directly.
-            state["response"] = "I couldn't identify a specific diagnostic workflow for this issue. Let me search the manuals for general troubleshooting advice."
+            state["response_text"] = "I couldn't identify a specific diagnostic workflow for this issue. Let me search the manuals for general troubleshooting advice."
             # Set intent to PROCEDURE to force standard retrieval on next step, or just let synthesizer handle it.
             # The router edge logic will need to handle this.
             return state

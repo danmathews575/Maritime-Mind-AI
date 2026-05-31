@@ -28,6 +28,7 @@ slowapi==0.1.9
 qdrant-client==1.8.0
 sentence-transformers==4.1.0
 rank-bm25==0.2.2
+langdetect==1.0.9       # Phase 15.1: Lightweight language detection
 
 # Document & Image Processing
 pymupdf==1.25.5

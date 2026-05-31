@@ -17,6 +17,7 @@ from app.retrieval.controller import RetrievalController
 from app.services.llm_service import LLMService
 from app.configs.config import get_settings
 from app.models.schemas import QueryIntent
+from app.utils.language import detect_language
 
 logger = setup_logger("maritimemind.orchestration.graph")
 settings = get_settings()
@@ -69,7 +70,9 @@ def text_retrieval_node(state: AgentState) -> AgentState:
     # ── EXECUTE HARDENED RETRIEVAL ──────────────────────────────────────────
     # The controller now handles hybrid search, reranking, context expansion,
     # and absolute confidence scoring internally.
-    filters = {}
+    filters = state.get("filters") or {}
+    # Copy to avoid mutating original dictionary if present
+    filters = dict(filters)
     if state.get("department_hint"):
         filters["department"] = state.get("department_hint")
         
@@ -248,15 +251,21 @@ def _get_graph():
     return _app_graph
 
 
-def run_agent_workflow(query: str, history: list = None, provider: str = None) -> AgentState:
+def run_agent_workflow(query: str, history: list = None, provider: str = None, filters: dict = None) -> AgentState:
     """Convenience function to execute the graph."""
     if history is None:
         history = []
+
+    # Detect user query language for multilingual response generation
+    query_lang = detect_language(query)
+    logger.info(f"Detected query language: {query_lang}")
 
     initial_state = {
         "query": query,
         "conversation_history": history,
         "llm_provider": provider,
+        "filters": filters,
+        "detected_language": query_lang,
         "retry_count": 0,
         "max_retries": 2
     }

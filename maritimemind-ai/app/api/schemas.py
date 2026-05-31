@@ -18,6 +18,7 @@ class CitationOut(BaseModel):
     page_number: int
     section_title: str = ""
     chunk_id: str
+    ship_id: str = ""
 
 
 class ImageOut(BaseModel):
@@ -27,6 +28,7 @@ class ImageOut(BaseModel):
     caption: str = ""
     page_number: int
     manual_name: str
+    diagram_type: str = "UNKNOWN"
 
 
 # ---------------------------------------------------------------------------
@@ -52,6 +54,7 @@ class QueryResponse(BaseModel):
     session_id: Optional[str] = None
     quality_passed: bool = True
     quality_notes: str = ""
+    detected_language: str = ""
 
 
 # ---------------------------------------------------------------------------

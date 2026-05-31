@@ -57,7 +57,7 @@ class VectorStoreService:
                     vectors_config=models.VectorParams(size=text_dim, distance=models.Distance.COSINE),
                 )
                 # Create payload indexes for metadata filtering
-                for field in ["department", "manual_name", "importance"]:
+                for field in ["department", "manual_name", "importance", "ship_id", "language"]:
                     self._client.create_payload_index(
                         collection_name=self._text_collection_name,
                         field_name=field,

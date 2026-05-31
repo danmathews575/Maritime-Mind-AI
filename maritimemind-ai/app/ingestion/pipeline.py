@@ -23,6 +23,8 @@ from app.services.embedding import TextEmbeddingService
 from app.services.clip_embedding import ImageEmbeddingService
 from app.services.vector_store import VectorStoreService
 from app.services.bm25_index import BM25IndexService
+from app.configs.ships import get_ship_for_manual
+from app.utils.language import detect_language
 from app.utils.logger import setup_logger
 
 logger = setup_logger("maritimemind.ingestion.pipeline")
@@ -169,9 +171,28 @@ class IngestionPipeline:
             )
             
             chunks = self.chunker.chunk_document(batch_doc, department=department)
+            
+            # Inject Ship ID based on manual name
+            ship_id = get_ship_for_manual(manual_name)
+            for c in chunks:
+                c.ship_id = ship_id
+            
+            # Detect language from chunk content (sample first substantial chunk)
+            detected_lang = "en"  # default for maritime English manuals
+            for c in chunks:
+                if len(c.content) > 50:
+                    detected_lang = detect_language(c.content)
+                    break
+            for c in chunks:
+                c.language = detected_lang
+            
             all_chunks.extend(chunks)
             
             images = self.image_extractor.extract_and_save(batch_doc)
+            for img in images:
+                img.ship_id = ship_id
+                img.language = detected_lang
+                
             all_images.extend(images)
             
             # Incrementally commit text chunks to ChromaDB (before association, 

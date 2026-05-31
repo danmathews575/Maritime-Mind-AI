@@ -138,8 +138,9 @@ class TextEmbeddingService:
         Embed a search query. Alias for embed_text, semantically distinct
         for clarity at query time vs. indexing time.
 
-        Some embedding models use different prefixes for queries vs. documents.
-        This method provides the hook for that distinction.
+        The multilingual model (paraphrase-multilingual-MiniLM-L12-v2)
+        does not require query prefixes — symmetric embedding for
+        both queries and documents.
 
         Args:
             query: User search query string.
@@ -147,9 +148,4 @@ class TextEmbeddingService:
         Returns:
             Embedding vector as List[float].
         """
-        # BAAI/bge models perform best when queries (but not documents) 
-        # are prefixed with this instruction
-        if "bge" in self._model_name.lower():
-            query = f"Represent this sentence for searching relevant passages: {query}"
-            
         return self.embed_text(query)

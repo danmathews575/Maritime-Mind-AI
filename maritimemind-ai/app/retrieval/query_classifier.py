@@ -32,7 +32,9 @@ class QueryClassifier:
         QueryIntent.TROUBLESHOOTING: [
             r"troubleshoot", r"fault", r"error", r"alarm", r"failure",
             r"problem", r"issue", r"not\s+working", r"malfunction",
-            r"diagnos", r"defect", r"abnormal"
+            r"diagnos", r"defect", r"abnormal",
+            r"knock", r"vibrat", r"overheat", r"smoke", r"leak", r"noise", 
+            r"high\s+temperature", r"low\s+pressure", r"stuck", r"seized", r"hunt"
         ],
         QueryIntent.PROCEDURE: [
             r"procedure", r"how\s+to", r"steps?\s+to", r"process\s+for",
@@ -41,7 +43,7 @@ class QueryClassifier:
             r"calibrat", r"bleed", r"purge", r"top\s+up"
         ],
         QueryIntent.EMERGENCY: [
-            r"emergency", r"fire", r"flooding", r"man\s+overboard",
+            r"emergency", r"fire\s+on\s+board", r"fire\s+in\s+engine\s+room", r"flooding", r"man\s+overboard",
             r"abandon\s+ship", r"collision", r"grounding", r"spill",
             r"evacuat", r"muster", r"distress", r"mayday", r"sos"
         ],

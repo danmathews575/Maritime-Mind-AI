@@ -1,4 +1,3 @@
-import functools
 import time
 from typing import Any, Dict, List
 
@@ -74,9 +73,9 @@ class RetrievalController:
         """
         top_k = top_k or settings.TOP_K_RESULTS
         filters_tuple = tuple(sorted(filters.items())) if filters else None
-        return self._cached_retrieve(query, top_k, filters_tuple)
+        return self._execute_retrieve(query, top_k, filters_tuple)
 
-    def _cached_retrieve(self, query: str, top_k: int, filters_tuple: tuple) -> List[RetrievalResult]:
+    def _execute_retrieve(self, query: str, top_k: int, filters_tuple: tuple) -> List[RetrievalResult]:
         start_time = time.perf_counter()
         
         # Convert tuple back to dict if present

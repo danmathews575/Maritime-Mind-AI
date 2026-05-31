@@ -30,14 +30,19 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None):
     encoded_jwt = jwt.encode(to_encode, settings.JWT_SECRET_KEY, algorithm=settings.JWT_ALGORITHM)
     return encoded_jwt
 
+DEMO_CREDENTIALS = {"admin": "maritimemind2025"}
+
 @router.post("/login", response_model=LoginResponse, summary="Login")
 async def login(request: LoginRequest):
     """
-    Login endpoint. (Demo: accepts any password for any username)
+    Login endpoint. (Demo: accepts hardcoded admin credentials)
     Returns a proper signed JWT.
     """
     if not request.username or not request.password:
         raise HTTPException(status_code=400, detail="Username and password are required")
+        
+    if request.username not in DEMO_CREDENTIALS or DEMO_CREDENTIALS[request.username] != request.password:
+        raise HTTPException(status_code=401, detail="Invalid credentials")
         
     access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(

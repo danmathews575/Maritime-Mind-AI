@@ -2,6 +2,7 @@ from app.utils.logger import setup_logger
 from typing import List, Dict, Any
 from app.agents.state import AgentState
 from app.services.llm_service import LLMService
+from app.utils.language import detect_language, get_language_name
 
 logger = setup_logger("maritimemind.agents.synthesizer")
 
@@ -80,6 +81,8 @@ def _format_context(text_results: List[Any]) -> str:
 
         block = f"Source [{idx+1}]{flag_str}:\n"
         block += f"  Manual: {chunk.manual_name}\n"
+        if chunk.ship_id:
+            block += f"  Ship Context: {chunk.ship_id}\n"
         block += f"  Page: {chunk.page_number}\n"
         block += f"  Section: {chunk.section_title}\n"
         block += f"  Subsystem: {chunk.subsystem}\n"
@@ -130,6 +133,7 @@ def _extract_citations(text_results: List[Any]) -> List[Dict[str, Any]]:
             "chunk_id": chunk.chunk_id,
             "section_title": chunk.section_title,
             "subsystem": chunk.subsystem,
+            "ship_id": chunk.ship_id or "",
         })
     return citations
 
@@ -200,8 +204,22 @@ def response_synthesis_agent(state: AgentState) -> AgentState:
         "- Format procedures as numbered steps preserving ALL original steps.\n"
         "- Highlight safety warnings with ⚠️ before the relevant step.\n"
         "- If information is insufficient, state so clearly rather than guessing.\n\n"
-        "## Answer:\n"
     )
+
+    # ── Multilingual response instruction ─────────────────────────────────────
+    detected_lang = state.get("detected_language", "en")
+    if detected_lang and detected_lang != "en":
+        lang_name = get_language_name(detected_lang)
+        prompt += (
+            f"## LANGUAGE RULE (MANDATORY):\n"
+            f"The user's query is written in **{lang_name}** ({detected_lang}).\n"
+            f"You MUST write your ENTIRE response in **{lang_name}**.\n"
+            f"The retrieved context may be in English — translate your answer into {lang_name}.\n"
+            f"Keep technical terms, part numbers, and [Source N] citations in their original form.\n\n"
+        )
+        logger.info(f"Multilingual response: answering in {lang_name} ({detected_lang})")
+
+    prompt += "## Answer:\n"
 
     # ── Handle low confidence warning ─────────────────────────────────────────
     if not state.get("verification_passed", True):

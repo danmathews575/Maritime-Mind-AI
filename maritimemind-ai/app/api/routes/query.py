@@ -32,10 +32,10 @@ _memory = memory_service
 
 
 
-def run_agent_workflow(query: str, history: list, provider: Optional[str] = None) -> dict:
+def run_agent_workflow(query: str, history: list, provider: Optional[str] = None, filters: Optional[Dict[str, Any]] = None) -> dict:
     """Thin wrapper around the LangGraph workflow — isolated here so tests can patch it."""
     from app.orchestration.graph import run_agent_workflow as _run
-    return _run(query=query, history=history, provider=provider)
+    return _run(query=query, history=history, provider=provider, filters=filters)
 
 
 def _build_image_url(image_path: str, manual_name: str) -> str:
@@ -75,7 +75,7 @@ async def query(request: Request, payload: QueryRequest) -> QueryResponse:
     # --- Run agent graph ---
     try:
         loop = asyncio.get_running_loop()
-        final_state = await loop.run_in_executor(None, run_agent_workflow, payload.query, history, payload.provider)
+        final_state = await loop.run_in_executor(None, run_agent_workflow, payload.query, history, payload.provider, payload.filters)
     except Exception as e:
         logger.exception(f"Agent workflow failed: {e}")
         raise HTTPException(status_code=500, detail=f"Agent workflow error: {str(e)}")
@@ -94,6 +94,7 @@ async def query(request: Request, payload: QueryRequest) -> QueryResponse:
             page_number=c.get("page_number", 0),
             section_title=c.get("section_title", ""),
             chunk_id=c.get("chunk_id", ""),
+            ship_id=c.get("ship_id", ""),
         ))
 
     # Build image URLs
@@ -107,6 +108,7 @@ async def query(request: Request, payload: QueryRequest) -> QueryResponse:
             caption=img_meta.caption,
             page_number=img_meta.page_number,
             manual_name=img_meta.manual_name,
+            diagram_type=img_meta.diagram_type,
         ))
 
     confidence = final_state.get("retrieval_confidence", 0.0)
@@ -132,6 +134,7 @@ async def query(request: Request, payload: QueryRequest) -> QueryResponse:
         session_id=session_id,
         quality_passed=quality_passed,
         quality_notes=quality_notes,
+        detected_language=final_state.get("detected_language", ""),
     )
 
     # --- Store in cache (only for high-confidence, non-session responses) ---
@@ -166,26 +169,32 @@ async def chat_stream(request: Request, payload: QueryRequest) -> StreamingRespo
         # Here we just run the graph in executor to unblock the event loop, and then stream the result.
         
         try:
+            yield f"data: {json.dumps({'type': 'thinking', 'data': 'Analyzing query intent...'})}\n\n"
+            await asyncio.sleep(0)
+            yield f"data: {json.dumps({'type': 'thinking', 'data': 'Retrieving from maritime corpus...'})}\n\n"
+            await asyncio.sleep(0)
+            
             loop = asyncio.get_running_loop()
-            final_state = await loop.run_in_executor(None, run_agent_workflow, payload.query, history, payload.provider)
+            final_state = await loop.run_in_executor(None, run_agent_workflow, payload.query, history, payload.provider, payload.filters)
         except Exception as e:
             logger.exception(f"Agent workflow failed: {e}")
-            yield f"data: {json.dumps({'type': 'token', 'data': 'Error: ' + str(e)})}\n\n"
+            yield f"data: {json.dumps({'type': 'token', 'data': 'Error: An internal server error occurred while processing your request.'})}\n\n"
             return
 
         answer = final_state.get("response_text", "I was unable to generate a response.")
         
         citations_raw = final_state.get("citations", [])
-        citations = [CitationOut(manual_name=c.get("manual_name", ""), page_number=c.get("page_number", 0), section_title=c.get("section_title", ""), chunk_id=c.get("chunk_id", "")).model_dump() for c in citations_raw]
+        citations = [CitationOut(manual_name=c.get("manual_name", ""), page_number=c.get("page_number", 0), section_title=c.get("section_title", ""), chunk_id=c.get("chunk_id", ""), ship_id=c.get("ship_id", "")).model_dump() for c in citations_raw]
         image_results = final_state.get("image_results", [])
-        images = [ImageOut(image_id=img.image_id, url=_build_image_url(img.image_path, img.manual_name), caption=img.caption, page_number=img.page_number, manual_name=img.manual_name).model_dump() for img in image_results]
+        images = [ImageOut(image_id=img.image_id, url=_build_image_url(img.image_path, img.manual_name), caption=img.caption, page_number=img.page_number, manual_name=img.manual_name, diagram_type=img.diagram_type).model_dump() for img in image_results]
         
         intent_val = final_state.get("intent")
         meta_payload = {
             "citations": citations,
             "images": images,
             "confidence": final_state.get("retrieval_confidence", 0.0),
-            "intent": intent_val.value if intent_val else ""
+            "intent": intent_val.value if intent_val else "",
+            "detected_language": final_state.get("detected_language", "")
         }
 
         if session_id:

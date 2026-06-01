@@ -66,16 +66,22 @@ class RetrievalController:
             rerank_weight=rerank_weight
         )
 
-    def retrieve(self, query: str, top_k: int = None, filters: Dict[str, Any] = None) -> List[RetrievalResult]:
+    def retrieve(
+        self, 
+        query: str, 
+        top_k: int = None, 
+        filters: Dict[str, Any] = None,
+        query_lang: str = "en"
+    ) -> List[RetrievalResult]:
         """
         Executes the full retrieval pipeline with hardened scoring and
         multimodal alignment.
         """
         top_k = top_k or settings.TOP_K_RESULTS
         filters_tuple = tuple(sorted(filters.items())) if filters else None
-        return self._execute_retrieve(query, top_k, filters_tuple)
+        return self._execute_retrieve(query, top_k, filters_tuple, query_lang)
 
-    def _execute_retrieve(self, query: str, top_k: int, filters_tuple: tuple) -> List[RetrievalResult]:
+    def _execute_retrieve(self, query: str, top_k: int, filters_tuple: tuple, query_lang: str) -> List[RetrievalResult]:
         start_time = time.perf_counter()
         
         # Convert tuple back to dict if present
@@ -106,7 +112,10 @@ class RetrievalController:
         
         # 3. Reranking
         if results:
-            results = self.reranker.rerank(query, results, top_n=top_k * 2)
+            if query_lang == "en":
+                results = self.reranker.rerank(query, results, top_n=top_k * 2)
+            else:
+                logger.info(f"Bypassing cross-encoder reranking for non-English query ({query_lang})")
 
         # 4. Context Expansion (adjacent chunks for procedures)
         if results:
@@ -114,7 +123,7 @@ class RetrievalController:
 
         # 5. Confidence Scoring (absolute, with intent boosting)
         if results:
-            results = self.scorer.compute(results, intent=intent)
+            results = self.scorer.compute(results, intent=intent, query_lang=query_lang)
             # Re-sort by final confidence score
             results.sort(key=lambda r: r.scores.confidence_score, reverse=True)
 
@@ -126,7 +135,7 @@ class RetrievalController:
 
         # 7. Multimodal Image Retrieval
         retrieved_images = self.image_retrieval.search(
-            query, text_results=results, top_k=5
+            query, text_results=results, top_k=5, filters=filters
         )
         
         # 8. Distribute images to their most-relevant text results

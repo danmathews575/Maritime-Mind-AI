@@ -221,15 +221,6 @@ def response_synthesis_agent(state: AgentState) -> AgentState:
 
     prompt += "## Answer:\n"
 
-    # ── Handle low confidence warning ─────────────────────────────────────────
-    if not state.get("verification_passed", True):
-        prompt = (
-            "⚠️ SYSTEM NOTE: The retrieved context has LOW CONFIDENCE and may not "
-            "fully answer the question. You MUST state this uncertainty clearly at "
-            "the beginning of your response. Do NOT compensate by generating "
-            "information not found in the context.\n\n"
-        ) + prompt
-
     # ── Generate response ─────────────────────────────────────────────────────
     provider = state.get("llm_provider")
     logger.info(f"Generating response using provider: {provider or 'default'}")

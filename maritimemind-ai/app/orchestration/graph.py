@@ -76,7 +76,13 @@ def text_retrieval_node(state: AgentState) -> AgentState:
     if state.get("department_hint"):
         filters["department"] = state.get("department_hint")
         
-    results = _controller.retrieve(query, top_k=settings.TOP_K_RESULTS, filters=filters)
+    query_lang = state.get("detected_language", "en")
+    results = _controller.retrieve(
+        query, 
+        top_k=settings.TOP_K_RESULTS, 
+        filters=filters,
+        query_lang=query_lang
+    )
     
     state["text_results"] = results
     

@@ -73,6 +73,7 @@ class ConfidenceScorer:
         self,
         results: List[RetrievalResult],
         intent: Optional[QueryIntent] = None,
+        query_lang: str = "en",
     ) -> List[RetrievalResult]:
         """
         Computes and updates the confidence_score field for all results in place.
@@ -81,6 +82,7 @@ class ConfidenceScorer:
         Args:
             results: List of RetrievalResult with raw scores populated.
             intent: Optional query intent for metadata-aligned boosting.
+            query_lang: The detected language of the query.
         """
         if not results:
             return []
@@ -98,11 +100,16 @@ class ConfidenceScorer:
             abs_rerank = self._abs_rerank_score(res.scores.rerank_score)
 
             # Weighted combination
-            conf = (
-                self.w_bm25 * norm_bm25[i]
-                + self.w_vec * abs_vec
-                + self.w_rerank * abs_rerank
-            )
+            if query_lang != "en":
+                # For non-English queries, BM25 and Cross-Encoder (English-only) are skipped
+                # We rely 100% on the multilingual dense vector score
+                conf = abs_vec
+            else:
+                conf = (
+                    self.w_bm25 * norm_bm25[i]
+                    + self.w_vec * abs_vec
+                    + self.w_rerank * abs_rerank
+                )
 
             # Intent-aligned metadata boosting
             if intent is not None:

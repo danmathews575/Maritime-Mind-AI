@@ -160,7 +160,7 @@ data/raw_pdfs/**/*.pdf
 # Extracted images from ingestion pipeline
 data/extracted_images/
 
-# ChromaDB persistent vector store
+# Vector store (Qdrant local + BM25 index)
 vector_store/
 
 # BM25 index files
@@ -169,10 +169,22 @@ data/bm25_index/
 # Eval dataset (generated during ingestion)
 data/eval_dataset.json
 
-# Temp scripts
+# Application logs
+logs/*.log
+logs/**/*.log
+
+# ── Frontend Build Artifacts ──────────────────────────────────────────────────
+frontend/dist/
+frontend/node_modules/
+frontend/.env.local
+frontend/.env.*.local
+
+# ── Scratch / Temporary Scripts ───────────────────────────────────────────────
 test_pipeline.py
 docs/temp_search*.txt
+scripts/scratch/
 
-# Model cache
+# ── Model Cache ───────────────────────────────────────────────────────────────
 .cache/
 models/
+

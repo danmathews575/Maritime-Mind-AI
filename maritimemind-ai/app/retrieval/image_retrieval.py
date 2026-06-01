@@ -66,6 +66,7 @@ class ImageRetrievalService:
         query: str,
         text_results: List[RetrievalResult],
         top_k: int = 5,
+        filters: dict = None,
     ) -> List[RetrievedImage]:
         """
         Dual-path image retrieval with hardened scoring.
@@ -197,6 +198,14 @@ class ImageRetrievalService:
         retrieved_images.sort(
             key=lambda x: x.explainability.final_score, reverse=True
         )
+
+        # Apply metadata filters (e.g. ship_id)
+        if filters and "ship_id" in filters:
+            ship_id = filters["ship_id"]
+            retrieved_images = [
+                img for img in retrieved_images
+                if img.metadata.ship_id == ship_id
+            ]
 
         # Apply minimum relevance threshold
         retrieved_images = [

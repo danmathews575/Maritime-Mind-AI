@@ -1,128 +1,255 @@
+<div align="center">
+
 # MaritimeMind AI
 
-**A multimodal, multi-agent RAG system for maritime engineering operations.**
+**A multimodal, multi-agent Retrieval-Augmented Generation (RAG) system for maritime engineering operations.**
 
-MaritimeMind AI is a production-grade AI assistant built for shipboard and shore-based maritime engineers. It ingests technical manuals, engineering schematics, regulatory documents, and maintenance procedures — then answers complex operational queries with grounded, cited responses and retrieved engineering diagrams.
+[![Python](https://img.shields.io/badge/Python-3.11-3776AB?style=flat&logo=python&logoColor=white)](https://python.org)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688?style=flat&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
+[![LangGraph](https://img.shields.io/badge/LangGraph-0.3-FF6B35?style=flat)](https://langchain-ai.github.io/langgraph/)
+[![React](https://img.shields.io/badge/React-19-61DAFB?style=flat&logo=react&logoColor=black)](https://react.dev)
+[![Qdrant](https://img.shields.io/badge/Qdrant-1.9-DC143C?style=flat)](https://qdrant.tech)
+[![License](https://img.shields.io/badge/License-Academic-blue?style=flat)](./LICENSE)
 
-Built as an **academic and professional showcase** of advanced AI engineering: multi-agent orchestration, multimodal retrieval, hybrid search, and a real-time streaming interface.
+*Deployed aboard vessels and in maritime operations centers. Ingests technical manuals, regulatory documents, and engineering schematics — answers complex operational queries with grounded, cited responses and retrieved engineering diagrams.*
 
----
-
-## Live Demo
-
-| Page | Description |
-|---|---|
-| **Landing** | Feature overview — Safety Regulations, Engine Diagnostics, Multilingual Q&A |
-| **Chat** | Streaming AI responses with intent routing, source citations, confidence scoring, and zoomable diagrams |
-
-**Example query to try:**
-> *"The Wärtsilä 26 main engine is showing high exhaust gas temperature on cylinder No. 3. What is the diagnostic procedure and show me the fuel injection system diagram?"*
+</div>
 
 ---
 
-## Architecture
+## Table of Contents
 
-The core is a **6-Agent LangGraph pipeline** that dynamically routes queries, verifies context quality, and synthesizes grounded answers with hallucination prevention.
+- [Overview](#overview)
+- [System Architecture](#system-architecture)
+- [Agent Pipeline](#agent-pipeline)
+- [Retrieval Engine](#retrieval-engine)
+- [Technology Stack](#technology-stack)
+- [Project Structure](#project-structure)
+- [Getting Started](#getting-started)
+- [Configuration](#configuration)
+- [Document Corpus](#document-corpus)
+- [API Reference](#api-reference)
+- [Scripts](#scripts)
+- [Testing](#testing)
+- [Demo Queries](#demo-queries)
+
+---
+
+## Overview
+
+MaritimeMind AI is a production-grade AI assistant purpose-built for the maritime domain. Unlike generic chatbots, it operates on a **closed, verified corpus** of ship manuals — every answer is grounded in retrieved source documents and accompanied by source citations, confidence scores, and relevant engineering diagrams.
+
+**Core capabilities:**
+
+- Answer natural-language queries about engine procedures, fault diagnostics, regulatory compliance, and ship systems
+- Retrieve and display engineering schematics, wiring diagrams, and cross-sectional drawings using CLIP visual search
+- Detect query language automatically and respond in the same language (Arabic, Spanish, French, etc.)
+- Stream responses token-by-token in real time via Server-Sent Events
+- Route emergency queries through a dedicated fast-path that bypasses retry loops for immediate response
+
+---
+
+## System Architecture
 
 ```
-User Query
-    │
-    ▼
-┌──────────────────┐
-│  Context Router  │  ← Classifies intent: procedure / troubleshooting /
-│      Agent       │    diagram_request / emergency / sop_lookup / explanation
-└──────┬───────────┘
-       │
-   ┌───┴──────────────────────────────────────┐
-   │                                          │
-   ▼                                          ▼
-┌──────────────────┐                ┌──────────────────┐
-│ Visual Specialist│                │ Diagnosis Agent  │
-│  (CLIP + OCR)    │                │  (Troubleshoot)  │
-└──────┬───────────┘                └──────┬───────────┘
-       │                                   │
-       ▼                                   │
-┌──────────────────┐                       │
-│  Text Retrieval  │ ◄─────────────────────┘
-│ Hybrid BM25+Vec  │
-└──────┬───────────┘
-       │
-       ▼
-┌──────────────────┐
-│  Retrieval       │  ← Confidence scoring, retry with LLM query rewriting
-│  Verifier        │
-└──────┬───────────┘
-       │
-       ▼
-┌──────────────────┐
-│  Synthesizer     │  ← Grounded LLM generation with strict citation rules
-│     Agent        │
-└──────┬───────────┘
-       │
-       ▼
-┌──────────────────┐
-│ Quality Reviewer │  ← Hallucination check, retry loop if failed
-└──────┬───────────┘
-       │
-       ▼
-  Final Answer + Diagram Cards + Citations
+┌─────────────────────────────────────────────────────────────────────┐
+│                         MaritimeMind AI                             │
+│                                                                     │
+│  ┌─────────────┐    ┌──────────────────────────────────────────┐   │
+│  │   React UI  │    │              FastAPI Backend              │   │
+│  │  (Vite/TS)  │◄──►│   /api/v1/chat/stream  (SSE Streaming)   │   │
+│  └─────────────┘    └───────────────┬──────────────────────────┘   │
+│                                     │                               │
+│                         ┌───────────▼───────────┐                  │
+│                         │   LangGraph Workflow   │                  │
+│                         │   (6-Agent Pipeline)   │                  │
+│                         └───────────┬───────────┘                  │
+│                                     │                               │
+│              ┌──────────────────────┼──────────────────────┐       │
+│              │                      │                       │       │
+│   ┌──────────▼──────┐  ┌───────────▼──────┐  ┌────────────▼────┐  │
+│   │  Qdrant Vector  │  │   BM25 Pickle    │  │  Redis Cache    │  │
+│   │  Store (local)  │  │   Index (sparse) │  │  (responses)    │  │
+│   └─────────────────┘  └──────────────────┘  └─────────────────┘  │
+└─────────────────────────────────────────────────────────────────────┘
 ```
 
-### Retrieval Layer — Hybrid Multimodal Search
+---
+
+## Agent Pipeline
+
+The system is built on a **stateful LangGraph directed graph** with six specialized agents. Each query traverses a different path through the graph depending on classified intent.
+
+```
+                         ┌──────────────────────┐
+                         │   Context Router      │
+                         │   Agent               │
+                         │                       │
+                         │  • Query expansion    │
+                         │  • Intent classifier  │
+                         │  • Strategy selector  │
+                         └──────┬───────────────-┘
+                                │
+          ┌─────────────────────┼─────────────────────┐
+          │                     │                      │
+          ▼                     ▼                      ▼
+  ┌───────────────┐    ┌────────────────┐    ┌─────────────────┐
+  │ Visual        │    │ Text Retrieval │    │ Diagnosis       │
+  │ Specialist    │    │ Node           │    │ Agent           │
+  │               │    │                │    │                 │
+  │ • CLIP search │    │ • BM25 search  │    │ • Fault trees   │
+  │ • OCR match   │    │ • Dense vector │    │ • Root cause    │
+  │ • Page prox.  │    │ • RRF fusion   │    │ • Structured    │
+  └───────┬───────┘    └───────┬────────┘    │   diagnosis     │
+          │                    │             └────────┬────────┘
+          └────────────────────┤                      │
+                               ▼                      │
+                    ┌──────────────────┐              │
+                    │ Retrieval        │              │
+                    │ Verifier         │              │
+                    │                  │              │
+                    │ • Conf. scoring  │              │
+                    │ • Query rewrite  │              │
+                    │   on low conf.   │              │
+                    └──────────┬───────┘              │
+                               │                      │
+                               ▼                      │
+                    ┌──────────────────┐              │
+                    │ Synthesizer      │              │
+                    │ Agent            │◄─────────────┘
+                    │                  │
+                    │ • Grounded LLM   │
+                    │ • Strict citng.  │
+                    │ • Safety rules   │
+                    └──────────┬───────┘
+                               │
+                               ▼
+                    ┌──────────────────┐
+                    │ Quality Reviewer │
+                    │                  │
+                    │ • Halluc. check  │
+                    │ • Retry if fail  │
+                    └──────────┬───────┘
+                               │
+                               ▼
+                    Final Answer + Citations
+                    + Diagram Cards + Conf. Score
+```
+
+### Intent → Strategy Routing Table
+
+| Intent | Triggered by | Retrieval Strategy | Special Behaviour |
+|---|---|---|---|
+| `PROCEDURE` | "How do I...", "Steps to..." | `multimodal` | Fetches diagrams — procedures reference schematics |
+| `TROUBLESHOOTING` | "Why is X happening", "Root cause of..." | `multimodal` + Diagnosis Agent | Routes to structured fault-tree agent |
+| `DIAGRAM_REQUEST` | "Show me the... diagram" | `image_priority` | CLIP visual search runs first |
+| `EMERGENCY` | "Flooding", "Fire", "Immediate actions" | `emergency` | Fast-path — zero retries, max speed |
+| `SOP_LOOKUP` | "MARPOL", "SOLAS", "Regulation..." | `text_only` | Regulatory text chunks prioritised |
+| `EXPLANATION` | "What is...", "Explain..." | `text_only` | Dense vector search for conceptual content |
+
+---
+
+## Retrieval Engine
+
+The retrieval layer combines four complementary signals before reranking.
 
 ```
 Query
-  ├── Dense Vector Search   (BAAI/bge-base-en-v1.5, 768-dim)
-  ├── Sparse BM25 Search    (rank-bm25, pickle index)
-  ├── CLIP Image Search     (ViT-B-32, 512-dim, visual similarity)
-  └── EasyOCR Text Match    (diagram label extraction)
+  │
+  ├─── [1] Dense Vector Search ──► BAAI/bge-base-en-v1.5 (768-dim, cosine)
+  │                                Qdrant HNSW index
+  │
+  ├─── [2] Sparse BM25 Search ───► rank-bm25 (TF-IDF term matching)
+  │                                In-memory pickle index
+  │
+  ├─── [3] CLIP Image Search ────► ViT-B-32 (512-dim, visual similarity)
+  │                                Separate Qdrant collection
+  │
+  └─── [4] EasyOCR Payload ──────► Diagram label text extracted at ingestion
+                                   Qdrant payload filter match
           │
           ▼
   Reciprocal Rank Fusion (RRF)
+  k=60, combines all ranked lists
           │
           ▼
-  Cross-Encoder Reranker (ms-marco-MiniLM-L-12-v2)
+  Cross-Encoder Reranker
+  ms-marco-MiniLM-L-12-v2
+  Re-scores top-N candidates
           │
           ▼
-  Confidence Scoring + Context Expansion
+  Confidence Scoring
+  Composite: reranker score + BM25 overlap + section match
+          │
+          ▼
+  Context Expansion
+  ±1 adjacent chunks retrieved for continuity
+          │
+          ▼
+  Verified Context → Synthesizer
 ```
 
----
+### On Low Confidence — Automatic Query Rewriting
 
-## Key Features
+If retrieval confidence falls below the threshold, the system automatically rewrites the query using an LLM before retrying (max 2 retries, non-emergency):
 
-- **6-Agent LangGraph Orchestration** — Specialized agents for routing, visual retrieval, diagnostics, synthesis, and quality review
-- **Hybrid Multimodal Retrieval** — Dense + sparse + CLIP image search with RRF fusion and cross-encoder reranking
-- **Engineering Diagram Intelligence** — CLIP embeddings + EasyOCR extract and index diagrams, schematics, and wiring diagrams from PDFs
-- **Hallucination Prevention** — Strict system prompt rules, retrieval verification, quality review loop, and confidence scoring
-- **Multilingual Support** — Auto-detects query language (Arabic, Spanish, French, etc.) and responds in the same language
-- **Streaming Responses** — Server-Sent Events (SSE) for real-time token-by-token streaming
-- **Emergency Fast-Path** — Emergency queries bypass retry loops for immediate response
-- **Redis Caching** — Sub-100ms repeated query response times
-- **JWT Authentication** — Secure API endpoints with rate limiting
+```
+Original query: "jacket water pressure fault"
+          │
+          ▼  [Retrieval Verifier: confidence < threshold]
+          │
+LLM Rewrite: "jacket cooling water system low pressure causes remedies
+              marine diesel engine"
+          │
+          ▼  [Retry text retrieval with expanded query]
+```
 
 ---
 
 ## Technology Stack
 
-| Layer | Technology |
-|---|---|
-| **Backend API** | FastAPI 0.115, Uvicorn, Pydantic v2 |
-| **Agent Framework** | LangGraph 0.3, LangChain 0.3 |
-| **LLM Providers** | Ollama (Llama 3), Google Gemini, OpenAI (configurable) |
-| **Vector Store** | Qdrant v1.9 (local or remote) |
-| **Text Embeddings** | BAAI/bge-base-en-v1.5 (sentence-transformers) |
-| **Image Embeddings** | CLIP ViT-B-32 (open-clip-torch) |
-| **Reranker** | ms-marco-MiniLM-L-12-v2 (cross-encoder) |
-| **Sparse Search** | BM25 (rank-bm25) |
-| **OCR** | EasyOCR |
-| **PDF Processing** | PyMuPDF, pdfplumber |
-| **Caching** | Redis 7.2 |
-| **Observability** | Arize Phoenix (LangChain tracing) |
-| **Frontend** | React 19, Vite 8, TypeScript, Tailwind CSS v4 |
-| **UI Components** | shadcn/ui, Framer Motion, Lucide React |
-| **Auth** | JWT (PyJWT), bcrypt, slowapi rate limiting |
-| **Testing** | pytest, pytest-asyncio |
+### Backend
+
+| Component | Library / Version | Purpose |
+|---|---|---|
+| API Framework | FastAPI 0.115 + Uvicorn 0.34 | Async HTTP server, SSE streaming |
+| Agent Framework | LangGraph 0.3 + LangChain 0.3 | Stateful multi-agent workflow |
+| LLM Providers | Gemini / OpenAI / Ollama | Configurable LLM backend |
+| Vector Store | Qdrant 1.9 (local or remote) | Dense + image vector search |
+| Text Embeddings | BAAI/bge-base-en-v1.5 | 768-dim semantic embeddings |
+| Image Embeddings | CLIP ViT-B-32 (open-clip-torch) | 512-dim visual embeddings |
+| Sparse Search | rank-bm25 | TF-IDF keyword search |
+| Reranker | ms-marco-MiniLM-L-12-v2 | Cross-encoder relevance reranking |
+| OCR | EasyOCR 1.7 | Diagram label text extraction |
+| PDF Processing | PyMuPDF 1.25 + pdfplumber 0.11 | Text and image extraction |
+| Token Counting | tiktoken 0.7 | Accurate chunk sizing |
+| Language Detection | langdetect 1.0 | Multilingual query routing |
+| Caching | Redis 7.2 + redis-py 5.0 | Response caching |
+| Auth | PyJWT + bcrypt + slowapi | JWT auth + rate limiting |
+| Observability | Arize Phoenix + OpenInference | LangChain trace visualization |
+| Data validation | Pydantic v2 + pydantic-settings | Config and schema validation |
+
+### Frontend
+
+| Component | Library / Version | Purpose |
+|---|---|---|
+| Framework | React 19 + Vite 8 | SPA with HMR dev server |
+| Language | TypeScript ~6.0 | Type safety |
+| Styling | Tailwind CSS v4 | Utility-first CSS |
+| UI Components | shadcn/ui | Accessible component primitives |
+| Animation | Framer Motion 12 | Chat animations, lightbox transitions |
+| Icons | Lucide React | Icon system |
+| Markdown | react-markdown + remark-gfm | Formatted AI responses |
+| Routing | React Router v7 | SPA navigation |
+| Fonts | Geist Variable | Typography |
+
+### Infrastructure
+
+| Service | Image | Purpose |
+|---|---|---|
+| Vector DB | `qdrant/qdrant:v1.9.2` | Vector storage |
+| Cache | `redis:7.2-alpine` | Response caching (256 MB LRU) |
+| Observability | `arizephoenix/phoenix:latest` | Trace monitoring (port 6006) |
 
 ---
 
@@ -131,90 +258,110 @@ Query
 ```
 maritimemind-ai/
 │
-├── app/                          # Backend application
-│   ├── agents/                   # LangGraph agent nodes
-│   │   ├── router.py             # Context Router — intent classification
-│   │   ├── visual_specialist.py  # CLIP-based diagram retrieval agent
-│   │   ├── verification.py       # Retrieval Verifier — confidence check
-│   │   ├── synthesizer.py        # Response Synthesis — grounded LLM generation
-│   │   ├── quality_reviewer.py   # Quality Review — hallucination prevention
-│   │   ├── diagnosis_agent.py    # Diagnosis Agent — troubleshooting workflows
-│   │   └── state.py              # Shared AgentState TypedDict
+├── app/                              # Python backend
 │   │
-│   ├── api/                      # FastAPI application
-│   │   ├── main.py               # App factory, lifespan, middleware, CORS
-│   │   ├── schemas.py            # Request/response Pydantic models
-│   │   └── routes/               # API route handlers
-│   │       ├── query.py          # /api/v1/chat/stream  (SSE streaming)
-│   │       ├── health.py         # /api/v1/health
-│   │       ├── sessions.py       # /api/v1/sessions
-│   │       ├── ingestion.py      # /api/v1/ingest
-│   │       └── auth.py           # /api/v1/auth/token
+│   ├── agents/                       # LangGraph agent nodes
+│   │   ├── state.py                  # AgentState TypedDict (shared graph state)
+│   │   ├── router.py                 # Context Router — intent + strategy assignment
+│   │   ├── visual_specialist.py      # CLIP + OCR image retrieval agent
+│   │   ├── verification.py           # Retrieval Verifier — confidence + retry logic
+│   │   ├── synthesizer.py            # Synthesizer — grounded LLM response generation
+│   │   ├── quality_reviewer.py       # Quality Reviewer — hallucination check
+│   │   └── diagnosis_agent.py        # Diagnosis Agent — structured fault analysis
 │   │
-│   ├── retrieval/                # Hybrid retrieval engine
-│   │   ├── controller.py         # RetrievalController — orchestrates all search
-│   │   ├── hybrid_search.py      # BM25 + dense vector + RRF fusion
-│   │   ├── image_retrieval.py    # CLIP-based image search
-│   │   ├── reranker.py           # Cross-encoder reranking
-│   │   ├── scoring.py            # Confidence scoring
-│   │   ├── context_expander.py   # Adjacent chunk retrieval
-│   │   └── query_classifier.py   # Query intent classification
+│   ├── orchestration/
+│   │   └── graph.py                  # LangGraph graph definition + run_agent_workflow()
 │   │
-│   ├── services/                 # Singleton service layer
-│   │   ├── embedding.py          # Text embedding (BGE)
-│   │   ├── clip_embedding.py     # Image embedding (CLIP)
-│   │   ├── bm25_index.py         # BM25 index management
-│   │   ├── vector_store.py       # Qdrant client wrapper
-│   │   ├── llm_service.py        # Multi-provider LLM abstraction
-│   │   ├── chunker.py            # Semantic text chunking
-│   │   └── association.py        # Text-image association scoring
+│   ├── retrieval/                    # Hybrid retrieval engine
+│   │   ├── controller.py             # RetrievalController — orchestrates all search paths
+│   │   ├── hybrid_search.py          # BM25 + dense vector + RRF fusion
+│   │   ├── image_retrieval.py        # CLIP visual search with OCR payload filtering
+│   │   ├── reranker.py               # Cross-encoder reranking (ms-marco)
+│   │   ├── scoring.py                # Composite confidence scoring
+│   │   ├── context_expander.py       # Adjacent chunk expansion (±1 chunk)
+│   │   └── query_classifier.py       # Rule + embedding intent classification
 │   │
-│   ├── ingestion/                # Document ingestion pipeline
-│   │   └── pipeline.py           # PDF → extract → chunk → embed → store
+│   ├── services/                     # Singleton service layer (model holders)
+│   │   ├── embedding.py              # TextEmbeddingService (BGE, lazy-loaded)
+│   │   ├── clip_embedding.py         # ImageEmbeddingService (CLIP, lazy-loaded)
+│   │   ├── bm25_index.py             # BM25IndexService (pickle load/save)
+│   │   ├── vector_store.py           # Qdrant client wrapper + collection helpers
+│   │   ├── llm_service.py            # Multi-provider LLM abstraction
+│   │   ├── chunker.py                # Semantic text chunking with tiktoken
+│   │   └── association.py            # Text↔image association scoring
 │   │
-│   ├── orchestration/            # LangGraph workflow
-│   │   └── graph.py              # Graph definition and run_agent_workflow()
+│   ├── ingestion/
+│   │   └── pipeline.py               # PDF → extract → chunk → embed → Qdrant
 │   │
-│   ├── configs/                  # Configuration
-│   │   ├── config.py             # Settings (pydantic-settings)
-│   │   └── limiter.py            # Rate limiter (slowapi)
+│   ├── api/
+│   │   ├── main.py                   # FastAPI app factory, lifespan, middleware
+│   │   ├── schemas.py                # Pydantic request/response models
+│   │   └── routes/
+│   │       ├── query.py              # POST /api/v1/chat/stream (SSE)
+│   │       ├── health.py             # GET  /api/v1/health
+│   │       ├── sessions.py           # GET  /api/v1/sessions/{id}
+│   │       ├── ingestion.py          # POST /api/v1/ingest
+│   │       └── auth.py               # POST /api/v1/auth/token
 │   │
-│   └── utils/                    # Utilities
-│       ├── logger.py             # Structured logging setup
-│       └── language.py           # Language detection utilities
+│   ├── memory/
+│   │   └── query_expander.py         # Conversational query expansion from history
+│   │
+│   ├── configs/
+│   │   ├── config.py                 # Settings class (pydantic-settings, .env)
+│   │   └── limiter.py                # slowapi rate limiter instance
+│   │
+│   └── utils/
+│       ├── logger.py                 # Structured logging setup
+│       └── language.py               # langdetect wrapper + language name mapping
 │
-├── frontend/                     # React frontend (Vite + TypeScript)
-│   └── src/
-│       ├── pages/
-│       │   ├── Home.tsx          # Landing page
-│       │   └── Chat.tsx          # Chat interface with streaming + lightbox
-│       └── components/ui/        # shadcn/ui component library
+├── frontend/src/
+│   ├── pages/
+│   │   ├── Home.tsx                  # Landing page (hero, feature cards)
+│   │   └── Chat.tsx                  # Chat UI (streaming, citations, lightbox)
+│   └── components/ui/                # shadcn/ui primitives
 │
-├── data/                         # Data directory (partially gitignored)
-│   ├── raw_pdfs/                 # Source PDFs by department
+├── data/
+│   ├── raw_pdfs/                     # Source PDFs by department (gitignored)
 │   │   ├── engineering/
 │   │   ├── deck/
 │   │   ├── navigation/
 │   │   └── safety/
-│   ├── extracted_images/         # Extracted diagram images (gitignored)
-│   └── metadata/                 # Ingestion manifests and validation reports
+│   ├── extracted_images/             # CLIP-indexed diagram images (gitignored)
+│   ├── demo/
+│   │   └── demo_queries.json         # Categorized demo query set
+│   └── metadata/
+│       ├── ingestion_manifest.json   # Per-manual chunk + image counts
+│       └── staged_validation_report.json
 │
-├── vector_store/                 # Qdrant local storage + BM25 index (gitignored)
-├── scripts/                      # Operational utilities
-│   ├── ingest.py                 # Run ingestion pipeline on raw_pdfs/
-│   ├── download_models.py        # Pre-download all AI models
-│   ├── precache.py               # Pre-warm Redis cache with demo queries
-│   ├── evaluate.py               # RAG evaluation against benchmark queries
-│   ├── staged_validation.py      # End-to-end retrieval validation suite
-│   └── generate_corpus_report.py # Generate corpus statistics report
+├── vector_store/                     # Qdrant local storage + BM25 index (gitignored)
 │
-├── tests/                        # Test suite (pytest)
-├── logs/                         # Application logs (gitignored)
-├── docker-compose.yml            # Full stack: backend, frontend, Qdrant, Redis, Phoenix
+├── scripts/
+│   ├── ingest.py                     # Run ingestion pipeline
+│   ├── download_models.py            # Pre-download model weights (~1.5 GB)
+│   ├── precache.py                   # Pre-warm Redis with demo queries
+│   ├── evaluate.py                   # RAG evaluation against benchmark_queries.json
+│   ├── staged_validation.py          # End-to-end retrieval validation suite
+│   ├── generate_corpus_report.py     # Print corpus statistics
+│   ├── cleanup_images.py             # Remove orphaned extracted images
+│   ├── backup.py / restore.py        # Vector store backup and restore
+│   └── test_agent_workflow.py        # Manual agent pipeline smoke test
+│
+├── tests/                            # pytest test suite
+│   ├── retrieval/
+│   │   ├── test_hybrid.py
+│   │   ├── test_scoring.py
+│   │   └── test_classifier.py
+│   ├── test_vector_store.py
+│   ├── test_bm25.py
+│   └── test_schemas.py
+│
+├── logs/                             # Application logs (gitignored)
+├── docker-compose.yml                # Full stack: backend + frontend + Qdrant + Redis + Phoenix
 ├── Dockerfile.backend
 ├── Dockerfile.frontend
-├── requirements.txt
-└── .env.example                  # Environment variable template
+├── requirements.txt                  # Python dependencies (pinned)
+├── .env.example                      # Environment variable template
+└── pytest.ini
 ```
 
 ---
@@ -223,86 +370,98 @@ maritimemind-ai/
 
 ### Prerequisites
 
-| Requirement | Version | Notes |
+| Requirement | Minimum Version | Notes |
 |---|---|---|
-| Python | 3.10+ | Tested on 3.11 |
-| Node.js | 18+ | For frontend |
-| Docker + Docker Compose | Latest | For infrastructure |
-| Ollama | Latest | For local LLM inference |
-| RAM | 8 GB+ | 16 GB recommended for CLIP + reranker |
+| Python | 3.10 | Tested on 3.11 |
+| Node.js | 18 | For frontend |
+| Docker + Compose | Latest stable | For Qdrant + Redis |
+| RAM | 8 GB | 16 GB recommended with CLIP + reranker in memory |
+| Disk | 5 GB free | For model weights + vector store |
 
 ---
 
-### Option A — Local Development (Recommended for Demo)
+### Option A — Local Development
 
-#### 1. Clone and configure
+#### Step 1: Clone & configure
 
 ```bash
-git clone https://github.com/your-username/maritimemind-ai.git
-cd maritimemind-ai
+git clone https://github.com/danmathews575/ai_chatbot.git
+cd ai_chatbot/maritimemind-ai
 cp .env.example .env
 ```
 
-Edit `.env` — set your LLM provider and API key:
+Edit `.env` — at minimum set your LLM provider:
 
 ```env
-# For Gemini (recommended — no local GPU needed):
+# Recommended: Gemini (no local GPU required)
 LLM_PROVIDER=gemini
 GEMINI_API_KEY=your_key_here
 
-# For local Ollama:
+# Or: Local Ollama
 LLM_PROVIDER=ollama
 OLLAMA_MODEL=llama3:8b
 ```
 
-#### 2. Start infrastructure (Qdrant + Redis)
+#### Step 2: Start infrastructure
 
 ```bash
+# Qdrant vector DB + Redis cache
 docker-compose up -d vector-db cache
 ```
 
-#### 3. Set up Python environment
+#### Step 3: Python environment
 
 ```bash
 python -m venv .venv
 
-# Windows:
+# Windows
 .venv\Scripts\activate
 
-# macOS / Linux:
+# macOS / Linux
 source .venv/bin/activate
 
 pip install -r requirements.txt
 ```
 
-#### 4. Download AI models
+#### Step 4: Download AI models
 
 ```bash
 python scripts/download_models.py
 ```
 
-Downloads: BGE text embedder, CLIP ViT-B-32, MS-Marco cross-encoder reranker (~1.5 GB total).
+Downloads (≈1.5 GB total):
+- `BAAI/bge-base-en-v1.5` — text embeddings
+- `ViT-B-32` — CLIP visual embeddings
+- `cross-encoder/ms-marco-MiniLM-L-12-v2` — reranker
 
-#### 5. Ingest documents
+#### Step 5: Ingest documents
 
-Place PDF manuals in `data/raw_pdfs/{engineering,deck,navigation,safety}/` then run:
+Place PDF manuals in `data/raw_pdfs/{engineering,deck,navigation,safety}/`
 
 ```bash
 python scripts/ingest.py
 ```
 
-This extracts text chunks, extracts and indexes images via CLIP, builds the BM25 index, and stores everything in Qdrant.
+The ingestion pipeline:
+1. Extracts text with PyMuPDF + pdfplumber
+2. Semantically chunks text with tiktoken-accurate sizing
+3. Embeds chunks with BGE and stores in Qdrant (`text_chunks` collection)
+4. Extracts diagram images and OCR labels
+5. Embeds images with CLIP and stores in Qdrant (`image_chunks` collection)
+6. Builds and persists the BM25 pickle index
 
-#### 6. Start the backend
+#### Step 6: Start backend
 
 ```bash
 uvicorn app.api.main:app --host 0.0.0.0 --port 8000
 ```
 
-API available at: `http://localhost:8000`
-Swagger docs: `http://localhost:8000/docs`
+On startup the API pre-warms all models (text embedder → CLIP → BM25 → reranker) to eliminate cold-start latency during the demo.
 
-#### 7. Start the frontend
+- API: `http://localhost:8000`
+- Swagger UI: `http://localhost:8000/docs`
+
+#### Step 7: Start frontend
 
 ```bash
 cd frontend
@@ -310,125 +469,218 @@ npm install
 npm run dev
 ```
 
-Application available at: `http://localhost:5173`
+- App: `http://localhost:5173`
 
 ---
 
-### Option B — Full Docker Compose
+### Option B — Docker Compose (Full Stack)
 
 ```bash
 cp .env.example .env
-# Edit .env with your LLM provider and API keys
+# Edit .env — set LLM_PROVIDER and API key
 
 docker-compose up --build
 ```
 
-Services started:
-- Frontend: `http://localhost:5173`
-- Backend API: `http://localhost:8000`
-- Qdrant UI: `http://localhost:6333/dashboard`
-- Redis: `localhost:6379`
-- Arize Phoenix (observability): `http://localhost:6006`
-
----
-
-## Environment Variables
-
-| Variable | Required | Default | Description |
-|---|---|---|---|
-| `LLM_PROVIDER` | Yes | `ollama` | `ollama`, `gemini`, or `openai` |
-| `GEMINI_API_KEY` | If Gemini | — | Comma-separated keys for rotation |
-| `OPENAI_API_KEY` | If OpenAI | — | OpenAI API key |
-| `OLLAMA_BASE_URL` | If Ollama | `http://localhost:11434` | Ollama server URL |
-| `OLLAMA_MODEL` | If Ollama | `llama3:8b` | Model name |
-| `QDRANT_HOST` | No | `local` | `local` (file-based) or hostname |
-| `QDRANT_PATH` | No | `./vector_store/qdrant_local` | Local Qdrant storage path |
-| `REDIS_URL` | No | `redis://localhost:6379/0` | Redis connection string |
-| `CONFIDENCE_THRESHOLD` | No | `0.6` | Minimum retrieval confidence (0–1) |
-| `JWT_SECRET_KEY` | Yes | — | Change in production |
-| `VITE_API_URL` | No | `http://localhost:8000` | Frontend → backend URL |
-
----
-
-## Ingested Document Corpus
-
-The system has been tested with the following maritime document types:
-
-| Category | Examples |
+| Service | URL |
 |---|---|
-| **Engine Manuals** | Marine diesel engine manuals (489 + 242 chunks), Wärtsilä 26 Maintenance Manual (202 chunks) |
-| **Safety** | Engine Room Fires TSC (18 chunks, 17 images) |
-| **Deck Operations** | Ballast operation manual, Anchoring guidelines, Mooring manual, Cargo handling |
-| **Navigation** | Radar manual (429 chunks, 304 images), ECDIS handbook |
-| **Ship Construction** | Ship CON 5 Student Sections (23 diagrams), Construction — Stem (21 diagrams) |
-| **Regulatory** | MARPOL Annex I, USCG Marine Safety Manual |
-| **Systems** | Ship cooling system (86 chunks), Ship fuel system (65 chunks), Framo ballast manual |
+| Frontend | `http://localhost:5173` |
+| Backend API | `http://localhost:8000` |
+| API Docs | `http://localhost:8000/docs` |
+| Qdrant Dashboard | `http://localhost:6333/dashboard` |
+| Arize Phoenix | `http://localhost:6006` |
+
+---
+
+## Configuration
+
+All settings are loaded from `.env` via `pydantic-settings`. See [`.env.example`](.env.example) for the full reference.
+
+| Variable | Default | Description |
+|---|---|---|
+| `LLM_PROVIDER` | `gemini` | `gemini` \| `openai` \| `ollama` |
+| `GEMINI_API_KEY` | — | Comma-separated for rate-limit key rotation |
+| `OPENAI_API_KEY` | — | OpenAI API key |
+| `OLLAMA_BASE_URL` | `http://localhost:11434` | Ollama server URL |
+| `OLLAMA_MODEL` | `llama3:8b` | Ollama model name |
+| `QDRANT_HOST` | `local` | `local` (file-based) or server hostname |
+| `QDRANT_PATH` | `./vector_store/qdrant_local` | Local Qdrant storage path |
+| `QDRANT_PORT` | `6333` | Qdrant server port |
+| `BM25_INDEX_PATH` | `./vector_store/bm25_index.pkl` | BM25 index pickle path |
+| `REDIS_URL` | `redis://localhost:6379/0` | Redis connection string |
+| `CONFIDENCE_THRESHOLD` | `0.6` | Min retrieval confidence before refusal (0–1) |
+| `TOP_K_RESULTS` | `5` | Chunks retrieved per query |
+| `EXTRACTED_IMAGES_DIR` | `./data/extracted_images` | Diagram image output directory |
+| `JWT_SECRET_KEY` | — | **Change before any deployment** |
+| `TEXT_EMBEDDING_DIM` | `768` | BGE embedding dimension |
+| `IMAGE_EMBEDDING_DIM` | `512` | CLIP embedding dimension |
+| `CORS_ORIGINS` | `http://localhost:5173` | Allowed frontend origins |
+| `VITE_API_URL` | `http://localhost:8000` | Frontend → backend base URL |
+
+---
+
+## Document Corpus
+
+The system has been validated against the following ingested corpus:
+
+| Manual / Document | Dept. | Text Chunks | Images |
+|---|---|---|---|
+| Marine Diesel Engine Manual 1 | Engineering | 489 | 60 |
+| Marine Diesel Engine Manual 2 | Engineering | 242 | 25 |
+| Wärtsilä 26 Maintenance Manual | Engineering | 202 | 3 |
+| Ship Cooling System | Engineering | 86 | 3 |
+| Ship Fuel System | Engineering | 65 | 1 |
+| Radar Manual | Navigation | 429 | 304 |
+| ECDIS Handbook | Navigation | 65 | 29 |
+| INTERTANKO Anchoring Guidelines | Deck | 166 | 4 |
+| POTLL Mooring Manual | Deck | 146 | 61 |
+| Framo Ballast Operation Manual | Deck | 22 | 12 |
+| Ballast Loss Prevention Article | Deck | 17 | 5 |
+| Cargo Handling Manual | Deck | 17 | 6 |
+| Engine Room Fires (TSC) | Safety | 18 | 17 |
+| Ship Evacuation Guidelines | Safety | 22 | 2 |
+| MARPOL Annex I / OPA / VRP | Regulatory | — | 20 |
+| USCG Marine Safety Manual Vol III | Regulatory | 1 | — |
+| SHIP CON 5 Student Sections | Construction | — | 23 |
+| Construction — Stem | Construction | — | 21 |
+| **Total** | | **≈ 2,200 chunks** | **≈ 600 images** |
+
+> PDFs that are scanned documents (no extractable text layer) are indexed via CLIP image embeddings and EasyOCR only.
 
 ---
 
 ## API Reference
 
-| Endpoint | Method | Description |
-|---|---|---|
-| `GET /api/v1/health` | GET | System health, model status, vector store stats |
-| `POST /api/v1/chat/stream` | POST | Main query endpoint — SSE streaming response |
-| `GET /api/v1/sessions/{id}` | GET | Retrieve session history |
-| `POST /api/v1/ingest` | POST | Trigger document ingestion |
-| `POST /api/v1/auth/token` | POST | Obtain JWT access token |
+### `POST /api/v1/chat/stream`
 
-Full interactive API documentation: `http://localhost:8000/docs`
+Main query endpoint. Returns a Server-Sent Events (SSE) stream.
 
-### Streaming Response Format (SSE)
-
+**Request body:**
+```json
+{
+  "query": "What is the procedure for starting the main engine?",
+  "session_id": "session-1234567890-abc",
+  "filters": {
+    "ship_id": "MV_AURORA"
+  }
+}
 ```
-data: {"type": "metadata", "data": {"intent": "troubleshooting", "confidence": 0.87, "images": [...], "citations": [...]}}
+
+**SSE event stream:**
+```
+data: {"type": "metadata", "data": {
+         "intent": "procedure",
+         "confidence": 0.87,
+         "detected_language": "en",
+         "citations": [{"manual_name": "...", "page_number": 42, "section_title": "..."}],
+         "images": [{"url": "/static/images/...", "caption": "...", "diagram_type": "SCHEMATIC"}]
+       }}
+
 data: {"type": "token", "data": "The "}
-data: {"type": "token", "data": "cylinder ..."}
+data: {"type": "token", "data": "main engine "}
+data: {"type": "token", "data": "starting procedure..."}
 data: {"type": "done"}
 ```
 
+### Other Endpoints
+
+| Method | Path | Description |
+|---|---|---|
+| `GET` | `/api/v1/health` | System health, model warm status, Qdrant stats |
+| `GET` | `/api/v1/sessions/{session_id}` | Retrieve session conversation history |
+| `POST` | `/api/v1/ingest` | Trigger document ingestion pipeline |
+| `POST` | `/api/v1/auth/token` | Obtain JWT access token |
+| `GET` | `/docs` | Interactive Swagger UI |
+| `GET` | `/redoc` | ReDoc API documentation |
+
 ---
 
-## Running Tests
+## Scripts
 
 ```bash
-# All tests
-pytest
+# Ingest all PDFs from data/raw_pdfs/ into the vector store
+python scripts/ingest.py
 
-# Specific module
-pytest tests/retrieval/
-pytest tests/test_vector_store.py -v
+# Pre-download all AI model weights (~1.5 GB)
+python scripts/download_models.py
 
-# With output
-pytest -s -v
+# Pre-warm Redis cache with categorized demo queries
+python scripts/precache.py --username admin --password password
+
+# Run RAG evaluation against benchmark queries
+python scripts/evaluate.py
+
+# End-to-end retrieval validation across all document categories
+python scripts/staged_validation.py
+
+# Print corpus statistics (chunk counts, image counts per manual)
+python scripts/generate_corpus_report.py
+
+# Remove orphaned extracted images not present in Qdrant
+python scripts/cleanup_images.py
+
+# Backup vector store and BM25 index
+python scripts/backup.py
+
+# Restore from backup
+python scripts/restore.py
+
+# Manual agent pipeline smoke test
+python scripts/test_agent_workflow.py
 ```
 
 ---
 
-## Scripts Reference
+## Testing
 
-| Script | Description |
-|---|---|
-| `scripts/ingest.py` | Ingest PDFs from `data/raw_pdfs/` into the vector store |
-| `scripts/download_models.py` | Pre-download all required AI model weights |
-| `scripts/precache.py` | Pre-warm Redis with demo queries for instant responses |
-| `scripts/evaluate.py` | Run RAG evaluation against benchmark queries |
-| `scripts/staged_validation.py` | End-to-end retrieval validation across all document categories |
-| `scripts/generate_corpus_report.py` | Print corpus statistics (chunk counts, image counts per manual) |
-| `scripts/cleanup_images.py` | Remove orphaned extracted images not present in vector store |
-| `scripts/backup.py` / `restore.py` | Backup and restore vector store and BM25 index |
+```bash
+# Run all tests
+pytest
+
+# Run with verbose output
+pytest -v -s
+
+# Run specific modules
+pytest tests/retrieval/ -v
+pytest tests/test_vector_store.py -v
+pytest tests/test_bm25.py -v
+```
+
+Test suite covers: retrieval scoring, hybrid search fusion, BM25 index, query classification, vector store operations, and Pydantic schema validation.
+
+---
+
+## Demo Queries
+
+The following categorized queries demonstrate each intent path through the agent pipeline:
+
+| Category | Query | Agent Path |
+|---|---|---|
+| **Procedure** | *"What is the procedure for starting the main engine?"* | Router → Text Retrieval → Verifier → Synthesizer |
+| **Procedure** | *"How do I perform a main engine slow turning before starting?"* | Router → Multimodal Retrieval → Verifier → Synthesizer |
+| **Emergency** | *"Engine room flooding — immediate actions"* | Router → Emergency Fast-Path → Synthesizer |
+| **Emergency** | *"Main engine fire emergency procedure"* | Router → Emergency Fast-Path → Synthesizer |
+| **Troubleshooting** | *"High lube oil temperature alarm on main engine — root cause"* | Router → Diagnosis Agent → Retrieval → Synthesizer |
+| **Troubleshooting** | *"The Wärtsilä 26 is showing high EGT on cylinder No. 3 — diagnostic procedure and fuel injection diagram"* | Router → Diagnosis Agent → Visual Specialist → Synthesizer |
+| **Diagram** | *"Show me the cooling water system schematic"* | Router → Visual Specialist → Text Retrieval → Synthesizer |
+| **Diagram** | *"Main engine fuel oil system diagram"* | Router → Visual Specialist → Synthesizer |
+| **Regulatory** | *"What is MARPOL Annex VI NOx Tier III limit?"* | Router → Text Retrieval → Verifier → Synthesizer |
+| **Regulatory** | *"SOLAS Chapter II-2 fire detection requirements"* | Router → Text Retrieval → Verifier → Synthesizer |
+| **Explanation** | *"Explain the principle of operation of a turbocharger"* | Router → Text Retrieval → Synthesizer |
+| **Multilingual** | *"¿Cuál es el procedimiento de arranque del motor principal?"* | Router → Language Detection → Text Retrieval → Synthesizer (replies in Spanish) |
 
 ---
 
 ## Operational Notes
 
-- **Cold start**: First request after startup takes ~10–15s as models load. Subsequent requests are fast.
-- **Model pre-warming**: The API automatically pre-warms all models on startup (text embedder, CLIP, BM25, reranker).
-- **Qdrant local mode**: By default, Qdrant runs in local file-based mode — no separate service required for development.
-- **LLM provider fallback**: Multiple `GEMINI_API_KEY` values can be comma-separated for automatic rate limit rotation.
+- **Model warm-up**: The API pre-warms all models at startup. First request after a cold start takes ~15s; subsequent requests are fast.
+- **Qdrant local mode**: By default (`QDRANT_HOST=local`) Qdrant runs as an embedded file-based store — no separate Docker service is needed for development.
+- **LLM key rotation**: Multiple `GEMINI_API_KEY` values (comma-separated) are rotated automatically to distribute rate limits.
+- **Emergency fast-path**: Emergency-intent queries skip all retry loops and proceed directly to synthesis — speed is prioritised over confidence validation.
+- **Redis fallback**: If Redis is unavailable the system continues without caching; responses are generated fresh each time.
 
 ---
 
 ## License
 
-This project is submitted as an academic/professional portfolio demonstration. All maritime technical documents used are publicly available reference materials.
+Submitted as an academic and professional portfolio project. All maritime technical documents used are publicly available reference materials.

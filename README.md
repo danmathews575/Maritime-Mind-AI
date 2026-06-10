@@ -442,10 +442,11 @@ Run the download script to fetch the required local models (text embedder, image
 python scripts/download_models.py
 ```
 
-#### Step 5: Document & Image Ingestion Process
+#### Step 5: Document & Image Ingestion Process (Optional)
 
-Before the chatbot can answer queries, you must ingest the maritime manuals into the vector database.
+**🎉 Good news:** The vector database (`vector_store/`) and extracted diagrams (`data/extracted_images/`) are pre-built and included in this repository. **You can completely skip this step and proceed directly to Step 6.**
 
+If you want to re-ingest the manuals yourself from scratch:
 1. **Prepare your PDFs**: Ensure that your PDF manuals are placed in the correct department subdirectories within `data/raw_pdfs/`. For example:
    - `data/raw_pdfs/engineering/`
    - `data/raw_pdfs/deck/`

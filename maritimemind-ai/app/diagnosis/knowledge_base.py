@@ -152,7 +152,261 @@ class KnowledgeBase:
             root_node_id="root"
         )
         
-        # We can add more trees here (e.g. High Exhaust Temp, Cooling Water) as needed.
+        # ── 2. High Exhaust Temperature ──────────────────────────────────
+        high_exh_temp_nodes = {
+            "root": FaultNode(
+                node_id="root",
+                instruction="Check the exhaust gas temperature readings on the engine monitoring system. Which cylinder(s) show high exhaust temperature deviation (>50°C above normal)?",
+                action_type="inspect",
+                possible_answers=["Single cylinder", "Multiple cylinders", "All cylinders"],
+                next_nodes={"Single cylinder": "check_injector", "Multiple cylinders": "check_turbocharger", "All cylinders": "check_air_cooler"},
+                search_queries=["exhaust gas temperature limits main engine", "high exhaust temperature alarm"],
+                component_context="exhaust gas temperature monitoring"
+            ),
+            "check_injector": FaultNode(
+                node_id="check_injector",
+                instruction="A single cylinder deviation suggests a fuel injector issue. Check the fuel injector for that cylinder. Is the injector spray pattern normal when tested?",
+                action_type="inspect",
+                possible_answers=["Yes", "No"],
+                next_nodes={"Yes": "check_exhaust_valve", "No": "replace_injector"},
+                search_queries=["fuel injector test procedure", "injector spray pattern inspection"],
+                component_context="fuel injector"
+            ),
+            "replace_injector": FaultNode(
+                node_id="replace_injector",
+                instruction="Replace the faulty fuel injector with a reconditioned spare. After replacement, run the engine and monitor the exhaust temperature for that cylinder.",
+                action_type="resolution",
+                next_nodes={},
+                search_queries=["fuel injector replacement procedure", "injector nozzle change"],
+                component_context="fuel injector replacement"
+            ),
+            "check_exhaust_valve": FaultNode(
+                node_id="check_exhaust_valve",
+                instruction="Injector is normal. Check the exhaust valve for that cylinder. Perform a compression test or check valve seating. Is compression normal?",
+                action_type="measure",
+                possible_answers=["Yes", "No"],
+                next_nodes={"Yes": "check_scavenge", "No": "overhaul_exhaust_valve"},
+                search_queries=["exhaust valve inspection", "compression test procedure main engine"],
+                component_context="exhaust valve"
+            ),
+            "overhaul_exhaust_valve": FaultNode(
+                node_id="overhaul_exhaust_valve",
+                instruction="The exhaust valve requires overhaul. Remove and recondition the valve, check the valve seat and spindle for carbon buildup or erosion.",
+                action_type="resolution",
+                next_nodes={},
+                search_queries=["exhaust valve overhaul procedure", "valve seat grinding"],
+                component_context="exhaust valve overhaul"
+            ),
+            "check_scavenge": FaultNode(
+                node_id="check_scavenge",
+                instruction="Compression is normal. Open the scavenge port inspection covers for that cylinder. Are the scavenge ports fouled or is there evidence of a scavenge fire?",
+                action_type="inspect",
+                possible_answers=["Ports fouled", "Evidence of fire", "Ports clear"],
+                next_nodes={"Ports fouled": "clean_scavenge_ports", "Evidence of fire": "scavenge_fire_response", "Ports clear": "terminal_single_cyl"},
+                search_queries=["scavenge port inspection", "scavenge fire detection"],
+                component_context="scavenge ports"
+            ),
+            "clean_scavenge_ports": FaultNode(
+                node_id="clean_scavenge_ports",
+                instruction="Clean the scavenge ports and inspect the piston rings for excessive blowpast. Schedule a piston pull if ring condition is poor.",
+                action_type="resolution",
+                next_nodes={},
+                search_queries=["scavenge port cleaning", "piston ring inspection"],
+                component_context="scavenge ports and piston rings"
+            ),
+            "scavenge_fire_response": FaultNode(
+                node_id="scavenge_fire_response",
+                instruction="⚠️ SCAVENGE FIRE DETECTED. Reduce engine speed immediately. Increase cylinder lubrication. Do NOT stop the engine suddenly. Monitor closely and prepare fire-fighting equipment.",
+                action_type="resolution",
+                next_nodes={},
+                search_queries=["scavenge fire emergency procedure", "scavenge fire response"],
+                component_context="scavenge fire emergency"
+            ),
+            "terminal_single_cyl": FaultNode(
+                node_id="terminal_single_cyl",
+                instruction="All checks are normal but temperature remains high. This may indicate fuel timing issues for this cylinder. Requires Chief Engineer assessment and possible timing adjustment.",
+                action_type="terminal_unresolved",
+                next_nodes={},
+                search_queries=["fuel timing adjustment", "VIT adjustment"],
+                component_context="fuel timing"
+            ),
+            "check_turbocharger": FaultNode(
+                node_id="check_turbocharger",
+                instruction="Multiple cylinders affected suggests a turbocharger issue. Check the turbocharger RPM and boost pressure. Is the turbocharger running at normal speed?",
+                action_type="measure",
+                possible_answers=["Yes", "No"],
+                next_nodes={"Yes": "check_air_cooler", "No": "tc_fouling"},
+                search_queries=["turbocharger RPM normal range", "turbocharger performance check"],
+                component_context="turbocharger"
+            ),
+            "tc_fouling": FaultNode(
+                node_id="tc_fouling",
+                instruction="Turbocharger performance is degraded. Perform a water washing of the turbine and compressor side. If performance does not recover, the turbocharger requires overhaul.",
+                action_type="resolution",
+                next_nodes={},
+                search_queries=["turbocharger water washing procedure", "turbine side cleaning"],
+                component_context="turbocharger cleaning"
+            ),
+            "check_air_cooler": FaultNode(
+                node_id="check_air_cooler",
+                instruction="Check the scavenge air temperature after the air cooler. Is it higher than normal (above 45°C)?",
+                action_type="measure",
+                possible_answers=["Yes", "No"],
+                next_nodes={"Yes": "clean_air_cooler", "No": "terminal_multi_cyl"},
+                search_queries=["charge air cooler temperature limits", "scavenge air temperature"],
+                component_context="charge air cooler"
+            ),
+            "clean_air_cooler": FaultNode(
+                node_id="clean_air_cooler",
+                instruction="The charge air cooler is fouled. Clean both the air side and the water side of the cooler. Check cooling water flow through the cooler.",
+                action_type="resolution",
+                next_nodes={},
+                search_queries=["charge air cooler cleaning procedure", "air cooler maintenance"],
+                component_context="charge air cooler"
+            ),
+            "terminal_multi_cyl": FaultNode(
+                node_id="terminal_multi_cyl",
+                instruction="Air cooler is clean and turbocharger is normal. This may indicate a fuel quality issue or engine load imbalance. Check fuel analysis reports and power balance.",
+                action_type="terminal_unresolved",
+                next_nodes={},
+                search_queries=["fuel quality analysis", "engine power balance test"],
+                component_context="fuel quality and load balance"
+            ),
+        }
+        
+        cls._TREES["high_exhaust_temp"] = FaultTree(
+            tree_id="high_exhaust_temp",
+            name="Main Engine High Exhaust Gas Temperature Diagnosis",
+            subsystem="exhaust",
+            applicable_alarms=["EXH_HIGH_TEMP", "ALARM_4301", "EXH_TEMP_DEV"],
+            applicable_symptoms=["high_temp"],
+            nodes=high_exh_temp_nodes,
+            root_node_id="root"
+        )
+        
+        # ── 3. Cooling Water System Failure ──────────────────────────────
+        cw_failure_nodes = {
+            "root": FaultNode(
+                node_id="root",
+                instruction="Check the jacket cooling water outlet temperature. Is it rising above normal operating range (typically above 85°C)?",
+                action_type="inspect",
+                possible_answers=["Yes", "No, but alarm triggered"],
+                next_nodes={"Yes": "check_expansion_tank", "No, but alarm triggered": "check_cw_sensor"},
+                search_queries=["jacket cooling water temperature limits", "cooling water alarm criteria"],
+                component_context="jacket cooling water system"
+            ),
+            "check_cw_sensor": FaultNode(
+                node_id="check_cw_sensor",
+                instruction="Temperature appears normal on local gauges but the alarm triggered. This suggests a faulty temperature sensor or transmitter. Inspect the sensor wiring and calibration.",
+                action_type="resolution",
+                next_nodes={},
+                search_queries=["cooling water temperature sensor calibration", "temperature transmitter replacement"],
+                component_context="cooling water temperature sensor"
+            ),
+            "check_expansion_tank": FaultNode(
+                node_id="check_expansion_tank",
+                instruction="Check the cooling water expansion tank level. Is the level low or is there evidence of water loss?",
+                action_type="inspect",
+                possible_answers=["Yes, level is low", "No, level is normal"],
+                next_nodes={"Yes, level is low": "find_leak", "No, level is normal": "check_thermostat"},
+                search_queries=["expansion tank level indicator", "cooling water system capacity"],
+                component_context="cooling water expansion tank"
+            ),
+            "find_leak": FaultNode(
+                node_id="find_leak",
+                instruction="⚠️ Cooling water loss detected. Check for leaks at: cylinder head gaskets, heat exchanger, piping connections, and pump seals. Is a leak found?",
+                action_type="inspect",
+                possible_answers=["Yes", "No"],
+                next_nodes={"Yes": "repair_cw_leak", "No": "internal_leak"},
+                search_queries=["cooling water leak detection", "cylinder head gasket inspection"],
+                component_context="cooling water piping and seals"
+            ),
+            "repair_cw_leak": FaultNode(
+                node_id="repair_cw_leak",
+                instruction="Isolate the leaking section if possible. Repair or replace the leaking component. Top up the expansion tank with treated fresh water and vent the system.",
+                action_type="resolution",
+                next_nodes={},
+                search_queries=["cooling water system repair", "expansion tank top up procedure"],
+                component_context="cooling water piping repair"
+            ),
+            "internal_leak": FaultNode(
+                node_id="internal_leak",
+                instruction="No external leak found. The water may be leaking internally into the engine (through a cracked liner or head gasket). Check lube oil for water contamination. This requires engineering team investigation.",
+                action_type="terminal_unresolved",
+                next_nodes={},
+                search_queries=["lube oil water contamination test", "cylinder liner crack detection"],
+                component_context="internal cooling water leak"
+            ),
+            "check_thermostat": FaultNode(
+                node_id="check_thermostat",
+                instruction="Water level is normal. Check the thermostatic control valve. Is the three-way valve operating correctly and diverting flow through the cooler?",
+                action_type="inspect",
+                possible_answers=["Yes", "No, stuck or faulty"],
+                next_nodes={"Yes": "check_cw_pump", "No, stuck or faulty": "replace_thermostat"},
+                search_queries=["thermostatic valve inspection", "three-way valve operation"],
+                component_context="thermostatic control valve"
+            ),
+            "replace_thermostat": FaultNode(
+                node_id="replace_thermostat",
+                instruction="The thermostatic valve is stuck or malfunctioning. Replace the wax element or the entire valve assembly. Until replaced, manually control the bypass valve.",
+                action_type="resolution",
+                next_nodes={},
+                search_queries=["thermostatic valve replacement", "cooling water bypass valve"],
+                component_context="thermostatic valve replacement"
+            ),
+            "check_cw_pump": FaultNode(
+                node_id="check_cw_pump",
+                instruction="Check the jacket cooling water pump discharge pressure and flow. Is the pump delivering normal pressure?",
+                action_type="measure",
+                possible_answers=["Yes", "No"],
+                next_nodes={"Yes": "check_heat_exchanger", "No": "switch_cw_pump"},
+                search_queries=["cooling water pump discharge pressure", "centrifugal pump performance"],
+                component_context="jacket cooling water pump"
+            ),
+            "switch_cw_pump": FaultNode(
+                node_id="switch_cw_pump",
+                instruction="Switch to the standby cooling water pump. If pressure recovers, the primary pump requires overhaul (impeller wear, mechanical seal, or bearing failure).",
+                action_type="resolution",
+                next_nodes={},
+                search_queries=["cooling water pump changeover", "centrifugal pump overhaul"],
+                component_context="standby cooling water pump"
+            ),
+            "check_heat_exchanger": FaultNode(
+                node_id="check_heat_exchanger",
+                instruction="Pump is normal. Check the central cooler / plate heat exchanger. Is there a high temperature differential across the cooler (inlet vs outlet)?",
+                action_type="measure",
+                possible_answers=["Yes, large differential", "No, small differential"],
+                next_nodes={"Yes, large differential": "clean_heat_exchanger", "No, small differential": "terminal_cw"},
+                search_queries=["heat exchanger performance check", "plate cooler inspection"],
+                component_context="central plate cooler"
+            ),
+            "clean_heat_exchanger": FaultNode(
+                node_id="clean_heat_exchanger",
+                instruction="The heat exchanger is fouled. Open and clean the plate stack (fresh water side and sea water side). Inspect zinc anodes and replace if consumed.",
+                action_type="resolution",
+                next_nodes={},
+                search_queries=["plate heat exchanger cleaning procedure", "zinc anode replacement"],
+                component_context="plate heat exchanger cleaning"
+            ),
+            "terminal_cw": FaultNode(
+                node_id="terminal_cw",
+                instruction="All cooling system components check normal but temperature remains high. This may indicate sea water system issues (high sea water inlet temperature, fouled sea chest) or excessive engine load. Requires further investigation.",
+                action_type="terminal_unresolved",
+                next_nodes={},
+                search_queries=["sea water cooling system", "sea chest cleaning"],
+                component_context="sea water cooling circuit"
+            ),
+        }
+        
+        cls._TREES["cw_failure"] = FaultTree(
+            tree_id="cw_failure",
+            name="Jacket Cooling Water System Failure Diagnosis",
+            subsystem="cooling_water",
+            applicable_alarms=["CW_HIGH_TEMP", "ALARM_4401", "CW_LOW_PRESS", "CW_LEVEL_LOW"],
+            applicable_symptoms=["high_temp", "leakage"],
+            nodes=cw_failure_nodes,
+            root_node_id="root"
+        )
 
     @classmethod
     def get_tree(cls, tree_id: str) -> Optional[FaultTree]:

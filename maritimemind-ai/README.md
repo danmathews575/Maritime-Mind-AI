@@ -156,7 +156,7 @@ The retrieval layer combines four complementary signals before reranking.
 ```
 Query
   │
-  ├─── [1] Dense Vector Search ──► BAAI/bge-base-en-v1.5 (768-dim, cosine)
+  ├─── [1] Dense Vector Search ──► paraphrase-multilingual-MiniLM-L12-v2 (384-dim, cosine)
   │                                Qdrant HNSW index
   │
   ├─── [2] Sparse BM25 Search ───► rank-bm25 (TF-IDF term matching)
@@ -216,7 +216,7 @@ LLM Rewrite: "jacket cooling water system low pressure causes remedies
 | Agent Framework | LangGraph 0.3 + LangChain 0.3 | Stateful multi-agent workflow |
 | LLM Providers | Gemini / OpenAI / Ollama | Configurable LLM backend |
 | Vector Store | Qdrant 1.9 (local or remote) | Dense + image vector search |
-| Text Embeddings | BAAI/bge-base-en-v1.5 | 768-dim semantic embeddings |
+| Text Embeddings | paraphrase-multilingual-MiniLM-L12-v2 | 384-dim multilingual semantic embeddings |
 | Image Embeddings | CLIP ViT-B-32 (open-clip-torch) | 512-dim visual embeddings |
 | Sparse Search | rank-bm25 | TF-IDF keyword search |
 | Reranker | ms-marco-MiniLM-L-12-v2 | Cross-encoder relevance reranking |
@@ -282,7 +282,7 @@ maritimemind-ai/
 │   │   └── query_classifier.py       # Rule + embedding intent classification
 │   │
 │   ├── services/                     # Singleton service layer (model holders)
-│   │   ├── embedding.py              # TextEmbeddingService (BGE, lazy-loaded)
+│   │   ├── embedding.py              # TextEmbeddingService (multilingual MiniLM, lazy-loaded)
 │   │   ├── clip_embedding.py         # ImageEmbeddingService (CLIP, lazy-loaded)
 │   │   ├── bm25_index.py             # BM25IndexService (pickle load/save)
 │   │   ├── vector_store.py           # Qdrant client wrapper + collection helpers
@@ -430,7 +430,7 @@ python scripts/download_models.py
 ```
 
 Downloads (≈1.5 GB total):
-- `BAAI/bge-base-en-v1.5` — text embeddings
+- `paraphrase-multilingual-MiniLM-L12-v2` — multilingual text embeddings
 - `ViT-B-32` — CLIP visual embeddings
 - `cross-encoder/ms-marco-MiniLM-L-12-v2` — reranker
 
@@ -445,7 +445,7 @@ python scripts/ingest.py
 The ingestion pipeline:
 1. Extracts text with PyMuPDF + pdfplumber
 2. Semantically chunks text with tiktoken-accurate sizing
-3. Embeds chunks with BGE and stores in Qdrant (`text_chunks` collection)
+3. Embeds chunks with multilingual MiniLM and stores in Qdrant (`text_chunks` collection)
 4. Extracts diagram images and OCR labels
 5. Embeds images with CLIP and stores in Qdrant (`image_chunks` collection)
 6. Builds and persists the BM25 pickle index
@@ -512,7 +512,7 @@ All settings are loaded from `.env` via `pydantic-settings`. See [`.env.example`
 | `TOP_K_RESULTS` | `5` | Chunks retrieved per query |
 | `EXTRACTED_IMAGES_DIR` | `./data/extracted_images` | Diagram image output directory |
 | `JWT_SECRET_KEY` | — | **Change before any deployment** |
-| `TEXT_EMBEDDING_DIM` | `768` | BGE embedding dimension |
+| `TEXT_EMBEDDING_DIM` | `384` | Multilingual MiniLM embedding dimension |
 | `IMAGE_EMBEDDING_DIM` | `512` | CLIP embedding dimension |
 | `CORS_ORIGINS` | `http://localhost:5173` | Allowed frontend origins |
 | `VITE_API_URL` | `http://localhost:8000` | Frontend → backend base URL |

@@ -22,19 +22,23 @@ settings = get_settings()
 async def health_check() -> HealthResponse:
     """
     Returns system health status.
-    Checks: Ollama connectivity, ChromaDB, BM25 index, embedding model.
+    Checks: LLM providers (with fallback chain), vector store, BM25 index, embedding model.
     """
+    llm_providers = {}
+    llm_fallback_order = []
     ollama_ok = False
     vector_ok = False
     bm25_ok = False
     embedding_ok = False
 
-    # --- Ollama check ---
+    # --- LLM provider check (multi-provider with fallback) ---
     try:
         llm = LLMService()
-        ollama_ok = llm.health_check()
+        llm_providers = llm.health_check()
+        llm_fallback_order = llm.fallback_order
+        ollama_ok = llm_providers.get("ollama", False)
     except Exception as e:
-        logger.warning(f"Ollama health check failed: {e}")
+        logger.warning(f"LLM health check failed: {e}")
 
     # --- Vector store check ---
     try:
@@ -58,8 +62,12 @@ async def health_check() -> HealthResponse:
     except Exception as e:
         logger.warning(f"Embedding model check failed: {e}")
 
+    # --- Determine overall status ---
+    any_llm_available = any(llm_providers.values())
     overall = "healthy"
     if not vector_ok or not embedding_ok:
+        overall = "degraded"
+    if not any_llm_available:
         overall = "degraded"
     if not vector_ok and not embedding_ok:
         overall = "unhealthy"
@@ -70,6 +78,8 @@ async def health_check() -> HealthResponse:
         vector_store_ready=vector_ok,
         bm25_index_ready=bm25_ok,
         embedding_model_ready=embedding_ok,
+        llm_providers=llm_providers,
+        llm_fallback_order=llm_fallback_order,
     )
 
 
@@ -93,5 +103,5 @@ async def get_stats() -> StatsResponse:
         ollama_model=settings.OLLAMA_MODEL,
         embedding_model=settings.TEXT_EMBEDDING_MODEL,
         bm25_index_path=settings.BM25_INDEX_PATH,
-        chromadb_path=settings.CHROMADB_PERSIST_DIR,
+        qdrant_path=settings.QDRANT_PATH,
     )

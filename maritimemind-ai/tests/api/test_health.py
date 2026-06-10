@@ -35,7 +35,7 @@ class TestHealthEndpoint:
             patch("os.path.exists", return_value=True),
         ):
             # Mock healthy services
-            mock_llm_cls.return_value.health_check.return_value = True
+            mock_llm_cls.return_value.health_check.return_value = {"nvidia": True, "gemini": True, "ollama": True}
             mock_vs_cls.return_value.get_collection_stats.return_value = {"text_count": 100}
             mock_emb_cls.return_value.embed_query.return_value = [0.1] * 384
 
@@ -56,7 +56,7 @@ class TestHealthEndpoint:
             patch("app.api.routes.health.TextEmbeddingService") as mock_emb_cls,
             patch("os.path.exists", return_value=True),
         ):
-            mock_llm_cls.return_value.health_check.return_value = True
+            mock_llm_cls.return_value.health_check.return_value = {"nvidia": True, "gemini": True, "ollama": True}
             mock_vs_cls.return_value.get_collection_stats.return_value = {"text_count": 50}
             mock_emb_cls.return_value.embed_query.return_value = [0.1] * 384
 
@@ -98,6 +98,7 @@ class TestStatsEndpoint:
         assert "image_count" in data
         assert "ollama_model" in data
         assert "embedding_model" in data
+        assert "qdrant_path" in data
 
     def test_stats_returns_zero_counts_on_vs_failure(self):
         with patch("app.api.routes.health.VectorStoreService",

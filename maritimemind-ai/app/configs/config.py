@@ -22,7 +22,8 @@ class MaritimeMindSettings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
 
     # LLM Inference
-    LLM_PROVIDER: str = "ollama"  # "ollama", "gemini", or "openai"
+    LLM_PROVIDER: str = "nvidia"  # "nvidia", "ollama", "gemini", or "openai"
+    LLM_FALLBACK_ORDER: str = "nvidia,gemini,ollama"  # Comma-separated fallback chain
     OLLAMA_BASE_URL: str = "http://localhost:11434"
     OLLAMA_MODEL: str = "llama3:8b"
     GEMINI_API_KEY: str = ""

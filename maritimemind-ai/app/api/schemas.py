@@ -126,6 +126,8 @@ class HealthResponse(BaseModel):
     vector_store_ready: bool
     bm25_index_ready: bool
     embedding_model_ready: bool
+    llm_providers: Dict[str, bool] = Field(default_factory=dict, description="Per-provider availability")
+    llm_fallback_order: List[str] = Field(default_factory=list, description="Configured fallback chain")
 
 
 class StatsResponse(BaseModel):
@@ -135,7 +137,7 @@ class StatsResponse(BaseModel):
     ollama_model: str
     embedding_model: str
     bm25_index_path: str
-    chromadb_path: str
+    qdrant_path: str
 
 
 # ---------------------------------------------------------------------------

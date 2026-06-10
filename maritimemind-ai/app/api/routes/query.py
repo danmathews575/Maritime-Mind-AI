@@ -69,7 +69,7 @@ async def query(request: Request, payload: QueryRequest) -> QueryResponse:
     if session_id:
         session = _memory.get_session(session_id)
         if session is None:
-            _memory.create_session(session_id)
+            raise HTTPException(status_code=404, detail="Session not found")
         history = _memory.get_history(session_id, max_messages=10)
 
     # --- Run agent graph ---
@@ -155,7 +155,7 @@ async def chat_stream(request: Request, payload: QueryRequest) -> StreamingRespo
     if session_id:
         session = _memory.get_session(session_id)
         if session is None:
-            _memory.create_session(session_id)
+            raise HTTPException(status_code=404, detail="Session not found")
         history = _memory.get_history(session_id, max_messages=10)
 
     async def event_generator() -> AsyncGenerator[str, None]:

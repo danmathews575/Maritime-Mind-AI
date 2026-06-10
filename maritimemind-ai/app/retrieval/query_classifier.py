@@ -43,9 +43,13 @@ class QueryClassifier:
             r"calibrat", r"bleed", r"purge", r"top\s+up"
         ],
         QueryIntent.EMERGENCY: [
-            r"emergency", r"fire\s+on\s+board", r"fire\s+in\s+engine\s+room", r"flooding", r"man\s+overboard",
+            r"emergency", r"fire\s+in", r"fire\s+on\s+board", r"fire\s+in\s+engine\s+room",
+            r"fire\s+alarm", r"fire\s+broke", r"fire\s+outbreak",
+            r"flooding", r"man\s+overboard",
             r"abandon\s+ship", r"collision", r"grounding", r"spill",
-            r"evacuat", r"muster", r"distress", r"mayday", r"sos"
+            r"evacuat", r"muster", r"distress", r"mayday", r"sos",
+            r"blackout", r"power\s+failure", r"steering\s+failure",
+            r"propulsion\s+loss", r"immedi(?:ate)?\s+action",
         ],
         QueryIntent.SOP_LOOKUP: [
             r"sop", r"standard\s+operating", r"protocol", r"regulation",

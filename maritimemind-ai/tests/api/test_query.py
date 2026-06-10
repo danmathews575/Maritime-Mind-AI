@@ -11,8 +11,10 @@ from unittest.mock import patch, MagicMock
 from fastapi.testclient import TestClient
 
 from app.api.main import app
+from app.api.routes.auth import get_current_user
 from app.models.schemas import QueryIntent
 
+app.dependency_overrides[get_current_user] = lambda: {"sub": "testuser"}
 client = TestClient(app, raise_server_exceptions=False)
 
 # ─── helpers ─────────────────────────────────────────────────────────────────

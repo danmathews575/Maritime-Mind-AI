@@ -157,11 +157,11 @@ Thumbs.db
 # Raw PDFs (large, should not be tracked in git — use cloud storage)
 data/raw_pdfs/**/*.pdf
 
-# Extracted images from ingestion pipeline
-data/extracted_images/
+# Extracted images from ingestion pipeline (TRACKED so reviewer doesn't need to re-extract)
+# data/extracted_images/
 
-# Vector store (Qdrant local + BM25 index)
-vector_store/
+# Vector store (Qdrant local + BM25 index) (TRACKED so reviewer doesn't need to re-ingest)
+# vector_store/
 
 # BM25 index files
 data/bm25_index/

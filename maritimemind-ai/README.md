@@ -370,19 +370,25 @@ maritimemind-ai/
 
 ### Prerequisites
 
+Please ensure the following are installed on your system before proceeding:
+
 | Requirement | Minimum Version | Notes |
 |---|---|---|
-| Python | 3.10 | Tested on 3.11 |
-| Node.js | 18 | For frontend |
-| Docker + Compose | Latest stable | For Qdrant + Redis |
-| RAM | 8 GB | 16 GB recommended with CLIP + reranker in memory |
-| Disk | 5 GB free | For model weights + vector store |
+| **Python** | 3.10 | Tested on 3.11. Required to run the backend API and ingestion scripts. |
+| **Node.js** | 18.x | Required to run the React frontend. |
+| **Docker & Docker Compose** | Latest stable | Required to run Qdrant (Vector DB) and Redis (Caching). |
+| **RAM** | 8 GB | 16 GB recommended when keeping CLIP and reranker models in memory. |
+| **Disk Space** | 5 GB free | Required for model weights and vector store persistence. |
 
 ---
 
-### Option A — Local Development
+### Local Development Setup
 
-#### Step 1: Clone & configure
+Follow these exact steps to set up and run the application successfully without any manual missing dependency installations.
+
+#### Step 1: Clone & Configure
+
+Clone the repository and copy the example environment variables:
 
 ```bash
 git clone https://github.com/danmathews575/ai_chatbot.git
@@ -390,7 +396,7 @@ cd ai_chatbot/maritimemind-ai
 cp .env.example .env
 ```
 
-Edit `.env` — at minimum set your LLM provider:
+Edit the `.env` file and set your LLM provider and API keys. At a minimum, set:
 
 ```env
 # Recommended: Gemini (no local GPU required)
@@ -402,74 +408,97 @@ LLM_PROVIDER=ollama
 OLLAMA_MODEL=llama3:8b
 ```
 
-#### Step 2: Start infrastructure
+#### Step 2: Start Infrastructure (Docker)
+
+Start the Qdrant vector database and Redis cache using Docker Compose:
 
 ```bash
-# Qdrant vector DB + Redis cache
 docker-compose up -d vector-db cache
 ```
 
-#### Step 3: Python environment
+#### Step 3: Install Python Dependencies
+
+Create a virtual environment and install all dependencies from `requirements.txt`:
 
 ```bash
+# Create a virtual environment
 python -m venv .venv
 
-# Windows
+# Activate the environment
+# Windows:
 .venv\Scripts\activate
-
-# macOS / Linux
+# macOS / Linux:
 source .venv/bin/activate
 
+# Install requirements
 pip install -r requirements.txt
 ```
 
-#### Step 4: Download AI models
+#### Step 4: Download AI Models
+
+Run the download script to fetch the required local models (text embedder, image embedder, and reranker). This will download ~1.5 GB of data.
 
 ```bash
 python scripts/download_models.py
 ```
 
-Downloads (≈1.5 GB total):
-- `paraphrase-multilingual-MiniLM-L12-v2` — multilingual text embeddings
-- `ViT-B-32` — CLIP visual embeddings
-- `cross-encoder/ms-marco-MiniLM-L-12-v2` — reranker
+#### Step 5: Document & Image Ingestion Process
 
-#### Step 5: Ingest documents
+Before the chatbot can answer queries, you must ingest the maritime manuals into the vector database.
 
-Place PDF manuals in `data/raw_pdfs/{engineering,deck,navigation,safety}/`
+1. **Prepare your PDFs**: Ensure that your PDF manuals are placed in the correct department subdirectories within `data/raw_pdfs/`. For example:
+   - `data/raw_pdfs/engineering/`
+   - `data/raw_pdfs/deck/`
+   - `data/raw_pdfs/navigation/`
+   - `data/raw_pdfs/safety/`
+2. **Run the Ingestion Pipeline**: Execute the ingestion script to process all PDFs in these directories.
+   ```bash
+   python scripts/ingest.py
+   ```
+   **What this does**:
+   - Extracts text and semantically chunks it.
+   - Embeds text chunks and stores them in Qdrant (`text_chunks`).
+   - Extracts diagrams and OCR labels from images.
+   - Embeds images using CLIP and stores them in Qdrant (`image_chunks`).
+   - Builds and persists the BM25 sparse index for keyword searches.
 
+*(Optional)* If you want to ingest a specific PDF file individually instead of the whole directory, use:
 ```bash
-python scripts/ingest.py
+python scripts/ingest.py --pdf path/to/your/manual.pdf
 ```
 
-The ingestion pipeline:
-1. Extracts text with PyMuPDF + pdfplumber
-2. Semantically chunks text with tiktoken-accurate sizing
-3. Embeds chunks with multilingual MiniLM and stores in Qdrant (`text_chunks` collection)
-4. Extracts diagram images and OCR labels
-5. Embeds images with CLIP and stores in Qdrant (`image_chunks` collection)
-6. Builds and persists the BM25 pickle index
+#### Step 6: Start the Backend API
 
-#### Step 6: Start backend
+With the documents ingested, start the FastAPI backend server:
 
 ```bash
 uvicorn app.api.main:app --host 0.0.0.0 --port 8000
 ```
+*Note: On startup, the API pre-warms all models to eliminate cold-start latency. The first startup might take ~15 seconds.*
+- **API URL**: `http://localhost:8000`
+- **Swagger Docs**: `http://localhost:8000/docs`
 
-On startup the API pre-warms all models (text embedder → CLIP → BM25 → reranker) to eliminate cold-start latency during the demo.
+#### Step 7: Start the Frontend UI
 
-- API: `http://localhost:8000`
-- Swagger UI: `http://localhost:8000/docs`
+You have two options for the frontend interface. The primary React UI is recommended.
 
-#### Step 7: Start frontend
+**Option A: React UI (Primary)**
+Open a new terminal, navigate to the `frontend` directory, install Node modules, and start the development server:
 
 ```bash
 cd frontend
 npm install
 npm run dev
 ```
+- **React App**: `http://localhost:5173`
 
-- App: `http://localhost:5173`
+**Option B: Streamlit UI (Alternative)**
+If you prefer a lightweight Python-based interface for testing, ensure your virtual environment is activated and run:
+
+```bash
+streamlit run app/ui/streamlit_app.py
+```
+- **Streamlit App**: `http://localhost:8501`
 
 ---
 

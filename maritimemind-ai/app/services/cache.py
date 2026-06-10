@@ -34,7 +34,7 @@ def _get_redis():
         client = redis.from_url(settings.REDIS_URL, decode_responses=True, socket_connect_timeout=1)
         client.ping()  # Verify connection
         _redis_client = client
-        logger.info("Redis cache connected ✓")
+        logger.info("Redis cache connected")
         return _redis_client
     except Exception as e:
         logger.warning(f"Redis unavailable — caching disabled: {e}")

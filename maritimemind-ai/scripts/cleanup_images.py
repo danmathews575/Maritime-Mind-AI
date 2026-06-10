@@ -38,13 +38,18 @@ def cleanup_images():
     
     # Delete from Vector Store
     if useless_ids:
-        print(f"Deleting {len(useless_ids)} records from ChromaDB...")
+        print(f"Deleting {len(useless_ids)} records from Qdrant...")
         try:
-            col = vs._get_or_create_image_collection()
-            col.delete(ids=useless_ids)
-            print("Successfully deleted from ChromaDB.")
+            import uuid
+            from qdrant_client.http import models
+            qdrant_ids = [str(uuid.uuid5(uuid.NAMESPACE_URL, i)) for i in useless_ids]
+            vs._client.delete(
+                collection_name=vs._image_collection_name,
+                points_selector=models.PointIdsList(points=qdrant_ids)
+            )
+            print("Successfully deleted from Qdrant.")
         except Exception as e:
-            print(f"Error deleting from ChromaDB: {e}")
+            print(f"Error deleting from Qdrant: {e}")
             
     # Delete from Disk
     for p in useless_paths:

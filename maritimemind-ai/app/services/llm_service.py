@@ -45,7 +45,7 @@ class LLMService:
         unavailable = [p for p in self.fallback_order if p not in self.pools]
         logger.info(
             f"LLM Fallback Chain initialized. "
-            f"Order: {' → '.join(self.fallback_order)} | "
+            f"Order: {' -> '.join(self.fallback_order)} | "
             f"Available: {available} | Unavailable: {unavailable}"
         )
         if not available:
@@ -74,7 +74,7 @@ class LLMService:
                     temperature=0.0,
                     request_timeout=30,
                 ))
-            logger.info(f"✅ NVIDIA NIM initialized ({len(keys)} key(s))")
+            logger.info(f"[OK] NVIDIA NIM initialized ({len(keys)} key(s))")
         except Exception as e:
             self._init_errors["nvidia"] = str(e)
             logger.warning(f"⚠️ NVIDIA NIM initialization failed: {e}")
@@ -96,7 +96,7 @@ class LLMService:
                     temperature=0.0,
                     request_timeout=30,
                 ))
-            logger.info(f"✅ Gemini initialized ({len(keys)} key(s))")
+            logger.info(f"[OK] Gemini initialized ({len(keys)} key(s))")
         except Exception as e:
             self._init_errors["gemini"] = str(e)
             logger.warning(f"⚠️ Gemini initialization failed: {e}")
@@ -110,7 +110,7 @@ class LLMService:
                 model=self.settings.OLLAMA_MODEL,
                 temperature=0.0,
             )]
-            logger.info(f"✅ Ollama initialized ({self.settings.OLLAMA_MODEL})")
+            logger.info(f"[OK] Ollama initialized ({self.settings.OLLAMA_MODEL})")
         except Exception as e:
             self._init_errors["ollama"] = str(e)
             logger.warning(f"⚠️ Ollama initialization failed: {e}")
@@ -131,7 +131,7 @@ class LLMService:
                     temperature=0.0,
                     request_timeout=30,
                 ))
-            logger.info(f"✅ OpenAI initialized ({len(keys)} key(s))")
+            logger.info(f"[OK] OpenAI initialized ({len(keys)} key(s))")
         except Exception as e:
             self._init_errors["openai"] = str(e)
             logger.warning(f"⚠️ OpenAI initialization failed: {e}")
@@ -253,7 +253,7 @@ class LLMService:
                 if errors:
                     failed_names = [e[0] for e in errors]
                     logger.warning(
-                        f"⚡ Fallback activated: {' → '.join(failed_names)} failed. "
+                        f"[RETRY] Fallback activated: {' -> '.join(failed_names)} failed. "
                         f"Succeeded with '{attempt_provider}' in {elapsed:.1f}s"
                     )
                 else:
@@ -273,7 +273,7 @@ class LLMService:
 
         # All providers exhausted
         error_summary = "; ".join(f"{p}: {e}" for p, e in errors)
-        logger.error(f"❌ All LLM providers failed. Errors: {error_summary}")
+        logger.error(f"[ERROR] All LLM providers failed. Errors: {error_summary}")
         return (
             "I'm temporarily unable to generate a response — all LLM providers "
             "are currently unavailable. Please try again in a moment.\n\n"

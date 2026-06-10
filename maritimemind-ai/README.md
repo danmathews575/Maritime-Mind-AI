@@ -408,6 +408,9 @@ LLM_PROVIDER=ollama
 OLLAMA_MODEL=llama3:8b
 ```
 
+> [!NOTE]
+> **Provider Recommendation**: For local development and evaluation, Gemini is the recommended provider. NVIDIA endpoints may experience higher latency and timeout behaviour.
+
 #### Step 2: Start Infrastructure (Docker)
 
 Start the Qdrant vector database and Redis cache using Docker Compose:
@@ -500,6 +503,12 @@ If you prefer a lightweight Python-based interface for testing, ensure your virt
 streamlit run app/ui/streamlit_app.py
 ```
 - **Streamlit App**: `http://localhost:8501`
+
+#### Demo Credentials
+
+To access the API endpoints or the frontend interface natively, use the following built-in demo credentials:
+- **Username**: `admin`
+- **Password**: `maritimemind2025`
 
 ---
 
@@ -662,6 +671,9 @@ python scripts/test_agent_workflow.py
 ---
 
 ## Testing
+
+> [!WARNING]
+> **Important**: Do not run `pytest` while the backend is actively running in Qdrant local mode. Local mode uses an exclusive file lock which will cause deadlocks. Use Docker-based Qdrant for concurrent testing.
 
 ```bash
 # Run all tests

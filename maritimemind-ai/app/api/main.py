@@ -37,7 +37,6 @@ from app.utils.logger import setup_logger
 # Observability (Arize Phoenix)
 try:
     from phoenix.otel import register
-    from openinference.instrumentation.fastapi import FastAPIInstrumentor
     from openinference.instrumentation.langchain import LangChainInstrumentor
     
     # Register Phoenix Tracer globally
@@ -82,7 +81,7 @@ async def lifespan(app: FastAPI):
             from app.services.embedding import TextEmbeddingService
             emb = TextEmbeddingService()
             emb.embed_query("maritime engine manual technical warmup query")
-            logger.info("Text embedding model pre-warmed ✓")
+            logger.info("Text embedding model pre-warmed")
         except Exception as e:
             logger.warning(f"Could not pre-warm embedding model: {e}")
 
@@ -91,7 +90,7 @@ async def lifespan(app: FastAPI):
             from app.services.clip_embedding import ImageEmbeddingService
             clip = ImageEmbeddingService()
             clip.embed_text("maritime diagram schematic")
-            logger.info("CLIP image model pre-warmed ✓")
+            logger.info("CLIP image model pre-warmed")
         except Exception as e:
             logger.warning(f"Could not pre-warm CLIP model: {e}")
 
@@ -101,7 +100,7 @@ async def lifespan(app: FastAPI):
             bm25 = BM25IndexService()
             if not bm25.is_built and os.path.exists(settings.BM25_INDEX_PATH):
                 bm25.load()
-                logger.info("BM25 index loaded ✓")
+                logger.info("BM25 index loaded")
             elif not bm25.is_built:
                 logger.warning("BM25 index not found — run ingestion first")
         except Exception as e:
@@ -111,7 +110,7 @@ async def lifespan(app: FastAPI):
         try:
             from app.retrieval.reranker import RerankerService
             RerankerService()  # Loads the cross-encoder
-            logger.info("Reranker model pre-warmed ✓")
+            logger.info("Reranker model pre-warmed")
         except Exception as e:
             logger.warning(f"Could not pre-warm reranker: {e}")
 
@@ -154,7 +153,7 @@ app.add_middleware(
 
 # Instrument FastAPI with Phoenix
 if _phoenix_enabled:
-    FastAPIInstrumentor().instrument(app=app)
+    pass
 
 # ─── Static files — serve extracted diagram images ───────────────────────────
 _images_dir = os.path.abspath(settings.EXTRACTED_IMAGES_DIR)
@@ -177,7 +176,7 @@ async def log_requests(request: Request, call_next):
     response = await call_next(request)
     elapsed_ms = (time.perf_counter() - start) * 1000
     logger.info(
-        f"{request.method} {request.url.path} → {response.status_code} "
+        f"{request.method} {request.url.path} -> {response.status_code} "
         f"({elapsed_ms:.1f} ms)"
     )
     return response
